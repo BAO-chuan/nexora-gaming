@@ -530,3 +530,6 @@ html[data-season-rank="master"]{--rank-accent:#ff4b23;--rank-deep:#8b130f}
  .referral-history-item{grid-template-columns:1fr}.referral-history-status{text-align:left}
  .referral-history-item>.user-history-delete-v2687{width:100%}
 }
+
+/* v2.6.8.9 Rotating Community Missions */
+.community-mission-periods{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 18px}.community-mission-period{border:1px solid #2b3948;border-radius:14px;background:#09121c;color:#9eafc4;padding:12px 14px;font-weight:900;text-align:left}.community-mission-period small{display:block;margin-top:3px;color:#65788f}.community-mission-period.active{border-color:#ff8b1f;background:linear-gradient(135deg,rgba(255,139,31,.18),rgba(255,81,30,.08));color:#fff;box-shadow:inset 3px 0 #ffd348}.mission-period-tag{display:inline-flex;width:max-content;padding:4px 8px;border-radius:999px;background:rgba(255,145,34,.09);border:1px solid rgba(255,145,34,.2);color:#ffb45d;font-size:10px;font-weight:950;letter-spacing:.08em;margin-bottom:7px}
