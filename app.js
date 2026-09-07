@@ -315,9 +315,19 @@ hydrateRankImages();authPage();dashboard();admin();adminEvents();adminProofs();p
 // Nexora v2.5 — Advanced Admin System
 (function(){
  const $v=id=>document.getElementById(id), escv=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- const adminDb=window.NEXORA_DB;
- const call=async(name,args={})=>{if(!adminDb)throw new Error('Không kết nối được Supabase. Hãy tải lại trang.');const r=await adminDb.rpc(name,args);if(r.error)throw r.error;return r.data};
- const toast=(t,bad=false)=>{const e=$v('adminMsg');if(e){e.textContent=t;e.style.color=bad?'#ff6b7a':'#20e6ff'}else alert(t)};
+ const getDb=()=>window.NEXORA_DB;
+ const call=async(name,args={})=>{
+  const client=getDb();
+  if(!client)throw new Error('Supabase chưa sẵn sàng. Hãy tải lại trang.');
+  const r=await client.rpc(name,args);
+  if(r.error)throw r.error;
+  return r.data;
+ };
+ const toast=(t,bad=false)=>{
+  const e=$v('adminMsg');
+  if(e){e.textContent=t;e.style.color=bad?'#ff6b7a':'#20e6ff';}
+  else alert(t);
+ };
  async function users(q=''){
   const box=$v('adminUserList');if(!box)return;
   try{const rows=await call('nexora_admin_users',{p_search:q,p_limit:50});box.innerHTML=(rows||[]).map(u=>`<article class="admin-v25-card"><b>${escv(u.display_name||'Game thủ')}</b> <small>${escv(u.email||'')}</small><div class="admin-v25-meta"><span>PTS ${u.points}</span><span>XP ${u.xp}</span><span>SP ${u.season_points}</span><span>${escv(u.game_rank||'—')}</span><span>${u.banned_until?'🔒 ĐANG KHÓA':'🟢 HOẠT ĐỘNG'}</span></div><div class="admin-v25-actions"><button class="ghost v25-adjust" data-id="${u.user_id}" data-name="${escv(u.display_name||'user')}">± PTS/XP/SP</button><button class="ghost ${u.banned_until?'':'admin-danger'} v25-ban" data-id="${u.user_id}" data-ban="${u.banned_until?'0':'1'}">${u.banned_until?'Mở khóa':'Khóa tài khoản'}</button></div></article>`).join('')||'<div class="empty-state">Không tìm thấy người dùng.</div>';}
