@@ -657,28 +657,51 @@ hydrateRankImages();authPage();dashboard();admin();adminEvents();adminProofs();i
 async function loadReferralCenterV2688(){
  const codeEl=$('myReferralCode'),linkEl=$('myReferralLink'),list=$('referralHistoryList');
  if(!codeEl&&!list)return;
+
+ // v2.6.8.8.1: render deterministic referral code immediately.
+ // The UI no longer stays at "Đang tải..." if a secondary history RPC fails.
+ let localCode='';
  try{
-   const [{data:summary,error:se},{data:rows,error:le}]=await Promise.all([
-     db.rpc('nexora_my_referral_summary_v2688'),
-     db.rpc('nexora_my_referrals_v2688',{p_limit:100})
-   ]);
-   if(se)throw se;if(le)throw le;
-   const s=summary||{},code=s.code||'—';
+   const {data:{user}}=await db.auth.getUser();
+   if(user?.id)localCode='NX-'+String(user.id).replaceAll('-','').slice(0,10).toUpperCase();
+ }catch(e){console.warn('Referral user:',e)}
+ if(localCode){
+   const inviteUrl=new URL('auth.html',location.href);
+   inviteUrl.searchParams.set('ref',localCode);
+   if(codeEl)codeEl.textContent=localCode;
+   if(linkEl)linkEl.value=inviteUrl.href;
+ }
+
+ // Load summary independently.
+ try{
+   const {data:s,error}=await db.rpc('nexora_my_referral_summary_v2688');
+   if(error)throw error;
+   const code=s?.code||localCode||'—';
    const inviteUrl=new URL('auth.html',location.href);
    inviteUrl.searchParams.set('ref',code);
    if(codeEl)codeEl.textContent=code;
    if(linkEl)linkEl.value=inviteUrl.href;
-   if($('referralTotal'))$('referralTotal').textContent=Number(s.total_invited||0);
-   if($('referralSuccess'))$('referralSuccess').textContent=Number(s.total_rewarded||0);
-   if($('referralPoints'))$('referralPoints').textContent=Number(s.points_earned||0).toLocaleString('vi-VN');
-   const monthCount=Number(s.month_rewarded||0),limit=Number(s.monthly_limit||10);
+   if($('referralTotal'))$('referralTotal').textContent=Number(s?.total_invited||0);
+   if($('referralSuccess'))$('referralSuccess').textContent=Number(s?.total_rewarded||0);
+   if($('referralPoints'))$('referralPoints').textContent=Number(s?.points_earned||0).toLocaleString('vi-VN');
+   const monthCount=Number(s?.month_rewarded||0),limit=Number(s?.monthly_limit||10);
    if($('referralMonth'))$('referralMonth').textContent=`${monthCount}/${limit}`;
    if($('referralProgressText'))$('referralProgressText').textContent=`${monthCount} / ${limit} referral`;
    if($('referralProgressBar'))$('referralProgressBar').style.width=`${Math.min(100,limit?monthCount/limit*100:0)}%`;
+ }catch(e){
+   console.warn('Referral summary v2688:',e);
+   if(!localCode&&codeEl)codeEl.textContent='Không tải được';
+   if(!localCode&&linkEl)linkEl.value='Không tải được link';
+ }
 
-   const hidden=await hiddenHistoryV2687();
-   const visible=(rows||[]).filter(r=>!isHistoryHiddenV2687(hidden,'referral',String(r.referral_id)));
-   if(list){
+ // Load history independently, so a history error cannot block code/link.
+ if(list){
+   try{
+     const {data:rows,error}=await db.rpc('nexora_my_referrals_v2688',{p_limit:100});
+     if(error)throw error;
+     let hidden=new Set();
+     try{hidden=await hiddenHistoryV2687()}catch(e){console.warn('Referral hidden history:',e)}
+     const visible=(rows||[]).filter(r=>!isHistoryHiddenV2687(hidden,'referral',String(r.referral_id)));
      const statusText=r=>r.status==='rewarded'?'✅ Thành công':r.status==='limit_reached'?'⚠️ Đã xác minh • vượt giới hạn tháng':'⏳ Chờ xác minh';
      list.innerHTML=visible.map(r=>`<article class="referral-history-item">
        <div class="referral-friend"><b>👤 ${esc(r.friend_name||'Game thủ Nexora')}</b><small>Tham gia ${fmtDate(r.created_at)}</small></div>
@@ -686,10 +709,10 @@ async function loadReferralCenterV2688(){
        <button class="ghost small user-history-delete-v2687" data-history-type="referral" data-history-key="${esc(String(r.referral_id))}" data-history-label="lịch sử giới thiệu này" type="button">🗑️ Xóa</button>
      </article>`).join('')||'<div class="empty-state">Bạn chưa có referral nào đang hiển thị.</div>';
      bindHistoryDeleteV2687(list,loadReferralCenterV2688);
+   }catch(e){
+     console.warn('Referral history v2688:',e);
+     list.innerHTML=`<div class="empty-state">Không tải được lịch sử Referral.${e?.message?`<br><small>${esc(e.message)}</small>`:''}</div>`;
    }
- }catch(e){
-   console.warn('Referral v2688:',e);
-   if(list)list.innerHTML='<div class="empty-state">Hãy chạy SQL v2.6.8.8 để kích hoạt Referral.</div>';
  }
 }
 function initReferralCenterV2688(){
