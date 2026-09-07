@@ -655,16 +655,32 @@ hydrateRankImages();authPage();dashboard();admin();adminEvents();adminProofs();i
 // Nexora v2.6.8.8 — Referral System
 // =========================================================
 async function loadReferralCenterV2688(){
- const codeEl=$('myReferralCode'),linkEl=$('myReferralLink'),list=$('referralHistoryList');
+ // v2.6.8.8.2 — Scope Hotfix
+ // Referral lives outside the main app IIFE, so it must NOT use the private `$` or `db`.
+ const el=id=>document.getElementById(id);
+ const client=window.NEXORA_DB;
+ const codeEl=el('myReferralCode'),linkEl=el('myReferralLink'),list=el('referralHistoryList');
  if(!codeEl&&!list)return;
 
- // v2.6.8.8.1: render deterministic referral code immediately.
- // The UI no longer stays at "Đang tải..." if a secondary history RPC fails.
+ const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const dateText=v=>{try{return new Date(v).toLocaleString('vi-VN')}catch{return '—'}};
+
+ if(!client){
+   if(codeEl)codeEl.textContent='Không tải được';
+   if(linkEl)linkEl.value='Supabase chưa sẵn sàng';
+   if(list)list.innerHTML='<div class="empty-state">Supabase chưa sẵn sàng. Hãy tải lại trang.</div>';
+   return;
+ }
+
+ // Show deterministic code/link first, independent from RPCs.
  let localCode='';
  try{
-   const {data:{user}}=await db.auth.getUser();
-   if(user?.id)localCode='NX-'+String(user.id).replaceAll('-','').slice(0,10).toUpperCase();
- }catch(e){console.warn('Referral user:',e)}
+   const {data,error}=await client.auth.getUser();
+   if(error)throw error;
+   const user=data?.user;
+   if(user?.id)localCode='NX-'+String(user.id).replace(/-/g,'').slice(0,10).toUpperCase();
+ }catch(e){console.warn('Referral auth v26882:',e)}
+
  if(localCode){
    const inviteUrl=new URL('auth.html',location.href);
    inviteUrl.searchParams.set('ref',localCode);
@@ -672,59 +688,87 @@ async function loadReferralCenterV2688(){
    if(linkEl)linkEl.value=inviteUrl.href;
  }
 
- // Load summary independently.
+ // Summary is independent from history.
  try{
-   const {data:s,error}=await db.rpc('nexora_my_referral_summary_v2688');
+   const {data:s,error}=await client.rpc('nexora_my_referral_summary_v2688');
    if(error)throw error;
    const code=s?.code||localCode||'—';
    const inviteUrl=new URL('auth.html',location.href);
    inviteUrl.searchParams.set('ref',code);
    if(codeEl)codeEl.textContent=code;
    if(linkEl)linkEl.value=inviteUrl.href;
-   if($('referralTotal'))$('referralTotal').textContent=Number(s?.total_invited||0);
-   if($('referralSuccess'))$('referralSuccess').textContent=Number(s?.total_rewarded||0);
-   if($('referralPoints'))$('referralPoints').textContent=Number(s?.points_earned||0).toLocaleString('vi-VN');
+   if(el('referralTotal'))el('referralTotal').textContent=Number(s?.total_invited||0);
+   if(el('referralSuccess'))el('referralSuccess').textContent=Number(s?.total_rewarded||0);
+   if(el('referralPoints'))el('referralPoints').textContent=Number(s?.points_earned||0).toLocaleString('vi-VN');
    const monthCount=Number(s?.month_rewarded||0),limit=Number(s?.monthly_limit||10);
-   if($('referralMonth'))$('referralMonth').textContent=`${monthCount}/${limit}`;
-   if($('referralProgressText'))$('referralProgressText').textContent=`${monthCount} / ${limit} referral`;
-   if($('referralProgressBar'))$('referralProgressBar').style.width=`${Math.min(100,limit?monthCount/limit*100:0)}%`;
+   if(el('referralMonth'))el('referralMonth').textContent=`${monthCount}/${limit}`;
+   if(el('referralProgressText'))el('referralProgressText').textContent=`${monthCount} / ${limit} referral`;
+   if(el('referralProgressBar'))el('referralProgressBar').style.width=`${Math.min(100,limit?monthCount/limit*100:0)}%`;
  }catch(e){
-   console.warn('Referral summary v2688:',e);
+   console.warn('Referral summary v26882:',e);
    if(!localCode&&codeEl)codeEl.textContent='Không tải được';
    if(!localCode&&linkEl)linkEl.value='Không tải được link';
  }
 
- // Load history independently, so a history error cannot block code/link.
+ // History is also independent. No dependency on private v2.6.8.7 helper functions.
  if(list){
    try{
-     const {data:rows,error}=await db.rpc('nexora_my_referrals_v2688',{p_limit:100});
+     const {data:rows,error}=await client.rpc('nexora_my_referrals_v2688',{p_limit:100});
      if(error)throw error;
-     let hidden=new Set();
-     try{hidden=await hiddenHistoryV2687()}catch(e){console.warn('Referral hidden history:',e)}
-     const visible=(rows||[]).filter(r=>!isHistoryHiddenV2687(hidden,'referral',String(r.referral_id)));
-     const statusText=r=>r.status==='rewarded'?'✅ Thành công':r.status==='limit_reached'?'⚠️ Đã xác minh • vượt giới hạn tháng':'⏳ Chờ xác minh';
+
+     // Read hidden referral history directly through the public RPC.
+     let hiddenKeys=new Set();
+     try{
+       const {data:hiddenRows,error:hiddenErr}=await client.rpc('nexora_my_hidden_history_v2687');
+       if(hiddenErr)throw hiddenErr;
+       hiddenKeys=new Set((hiddenRows||[])
+         .filter(x=>x.history_type==='referral')
+         .map(x=>String(x.history_key)));
+     }catch(e){console.warn('Referral hidden v26882:',e)}
+
+     const visible=(rows||[]).filter(r=>!hiddenKeys.has(String(r.referral_id)));
+     const statusText=r=>r.status==='rewarded'
+       ?'✅ Thành công'
+       :r.status==='limit_reached'
+         ?'⚠️ Đã xác minh • vượt giới hạn tháng'
+         :'⏳ Chờ xác minh';
+
      list.innerHTML=visible.map(r=>`<article class="referral-history-item">
-       <div class="referral-friend"><b>👤 ${esc(r.friend_name||'Game thủ Nexora')}</b><small>Tham gia ${fmtDate(r.created_at)}</small></div>
-       <div class="referral-history-status"><span class="referral-status ${esc(r.status)}">${statusText(r)}</span>${r.status==='rewarded'?`<strong>+${Number(r.inviter_points||100)} PTS</strong>`:''}</div>
-       <button class="ghost small user-history-delete-v2687" data-history-type="referral" data-history-key="${esc(String(r.referral_id))}" data-history-label="lịch sử giới thiệu này" type="button">🗑️ Xóa</button>
+       <div class="referral-friend"><b>👤 ${safe(r.friend_name||'Game thủ Nexora')}</b><small>Tham gia ${dateText(r.created_at)}</small></div>
+       <div class="referral-history-status"><span class="referral-status ${safe(r.status)}">${statusText(r)}</span>${r.status==='rewarded'?`<strong>+${Number(r.inviter_points||100)} PTS</strong>`:''}</div>
+       <button class="ghost small referral-delete-v26882" data-referral-id="${safe(String(r.referral_id))}" type="button">🗑️ Xóa</button>
      </article>`).join('')||'<div class="empty-state">Bạn chưa có referral nào đang hiển thị.</div>';
-     bindHistoryDeleteV2687(list,loadReferralCenterV2688);
+
+     list.querySelectorAll('.referral-delete-v26882').forEach(btn=>{
+       btn.onclick=async()=>{
+         if(!confirm('Xóa lịch sử giới thiệu này khỏi phần hiển thị của bạn?'))return;
+         btn.disabled=true;
+         const {error}=await client.rpc('nexora_hide_history_item_v2687',{
+           p_history_type:'referral',
+           p_history_key:btn.dataset.referralId
+         });
+         if(error){btn.disabled=false;alert(error.message||'Không thể xóa lịch sử.');return}
+         loadReferralCenterV2688();
+       };
+     });
    }catch(e){
-     console.warn('Referral history v2688:',e);
-     list.innerHTML=`<div class="empty-state">Không tải được lịch sử Referral.${e?.message?`<br><small>${esc(e.message)}</small>`:''}</div>`;
+     console.warn('Referral history v26882:',e);
+     list.innerHTML=`<div class="empty-state">Không tải được lịch sử Referral.<br><small>${safe(e?.message||'Lỗi không xác định')}</small></div>`;
    }
  }
 }
 function initReferralCenterV2688(){
- const copy=$('copyReferralLink'),share=$('shareReferralLink'),refresh=$('refreshReferral');
+ const el=id=>document.getElementById(id);
+ const copy=el('copyReferralLink'),share=el('shareReferralLink'),refresh=el('refreshReferral');
+ const flash=t=>{const m=el('dashMsg');if(m){m.textContent=t;m.style.color='#20e6ff'}};
  if(copy)copy.onclick=async()=>{
-   const link=$('myReferralLink')?.value||'';if(!link)return;
-   try{await navigator.clipboard.writeText(link);msg('dashMsg','Đã sao chép link mời ✓')}catch{prompt('Sao chép link này:',link)}
+   const link=el('myReferralLink')?.value||'';if(!link||link.startsWith('Đang'))return;
+   try{await navigator.clipboard.writeText(link);flash('Đã sao chép link mời ✓')}catch{prompt('Sao chép link này:',link)}
  };
  if(share)share.onclick=async()=>{
-   const link=$('myReferralLink')?.value||'';if(!link)return;
+   const link=el('myReferralLink')?.value||'';if(!link||link.startsWith('Đang'))return;
    if(navigator.share){try{await navigator.share({title:'Tham gia Nexora Gaming',text:'Tham gia Nexora cùng mình. Hoàn thành Challenge đầu tiên để nhận +50 PTS!',url:link})}catch{}}
-   else{try{await navigator.clipboard.writeText(link);msg('dashMsg','Thiết bị chưa hỗ trợ Chia sẻ. Mình đã sao chép link ✓')}catch{}}
+   else{try{await navigator.clipboard.writeText(link);flash('Thiết bị chưa hỗ trợ Chia sẻ. Mình đã sao chép link ✓')}catch{}}
  };
  if(refresh)refresh.onclick=loadReferralCenterV2688;
 }
