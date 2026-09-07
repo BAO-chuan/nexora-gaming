@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#070b12">
+<title>Nexora Gaming • Xác thực email</title>
+<link rel="stylesheet" href="styles.css?v=2688">
+<style>
+.nx-verify-page{min-height:100vh;background:radial-gradient(circle at 50% -10%,rgba(255,132,0,.18),transparent 35%),#070b12;color:#fff;display:grid;place-items:center;padding:24px;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.nx-verify-wrap{width:min(100%,520px);text-align:center}.nx-verify-brand{display:inline-block;color:#fff;text-decoration:none;font-weight:900;letter-spacing:.08em;margin-bottom:18px}.nx-verify-brand strong{color:#ff9c35}.nx-verify-card{background:linear-gradient(180deg,rgba(24,31,44,.98),rgba(12,17,27,.98));border:1px solid rgba(255,156,53,.24);border-radius:22px;padding:28px 22px;box-shadow:0 24px 70px rgba(0,0,0,.38)}.nx-verify-icon{width:76px;height:76px;border-radius:50%;margin:0 auto 16px;display:grid;place-items:center;font-size:34px;background:rgba(255,156,53,.12);border:1px solid rgba(255,156,53,.3)}.nx-verify-card h1{margin:0 0 10px;font-size:28px}.nx-verify-card p{color:#aab4c4;line-height:1.55;margin:8px 0}.nx-verify-email{color:#fff!important;font-weight:800;word-break:break-all}.nx-verify-actions{display:grid;gap:10px;margin-top:20px}.nx-verify-btn{appearance:none;border:0;border-radius:12px;padding:13px 16px;font-weight:900;cursor:pointer;text-decoration:none;display:block}.nx-verify-btn.primary{background:linear-gradient(135deg,#ff8a2a,#ffb02e);color:#111}.nx-verify-btn.secondary{background:#151d2a;color:#fff;border:1px solid #2b3748}.nx-verify-btn:disabled{opacity:.55;cursor:not-allowed}.nx-verify-status{min-height:24px;margin-top:14px!important;font-weight:700}.nx-verify-note{font-size:12px!important;color:#78859a!important;margin-top:18px!important}.nx-verified .nx-verify-icon{background:rgba(48,205,126,.12);border-color:rgba(48,205,126,.35)}
+</style>
+</head>
+<body class="nx-verify-page">
+<main class="nx-verify-wrap">
+<a class="nx-verify-brand" href="index.html">NEXORA <strong>GAMING</strong></a>
+<section id="verifyCard" class="nx-verify-card">
+<div id="verifyIcon" class="nx-verify-icon">✉️</div>
+<h1 id="verifyTitle">Xác thực email của bạn</h1>
+<p id="verifyText">Nexora đã gửi một email xác thực đến:</p>
+<p id="verifyEmail" class="nx-verify-email">Đang kiểm tra...</p>
+<p id="verifyGuide">Mở hộp thư và bấm nút xác nhận trong email để hoàn tất đăng ký.</p>
+<div class="nx-verify-actions">
+<button id="resendBtn" class="nx-verify-btn primary" type="button">GỬI LẠI EMAIL XÁC THỰC</button>
+<a id="loginBtn" class="nx-verify-btn secondary" href="auth.html#login">QUAY LẠI ĐĂNG NHẬP</a>
+<a id="dashboardBtn" class="nx-verify-btn primary" href="dashboard.html" hidden>VÀO NEXORA →</a>
+</div>
+<p id="verifyStatus" class="nx-verify-status"></p>
+<p class="nx-verify-note">Không thấy email? Hãy kiểm tra cả mục Spam / Thư rác.</p>
+</section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+(async()=>{
+ const C=window.NEXORA_CONFIG;
+ const status=document.getElementById('verifyStatus');
+ const emailEl=document.getElementById('verifyEmail');
+ const resend=document.getElementById('resendBtn');
+ const dashboard=document.getElementById('dashboardBtn');
+ const login=document.getElementById('loginBtn');
+ const card=document.getElementById('verifyCard');
+ const title=document.getElementById('verifyTitle');
+ const text=document.getElementById('verifyText');
+ const guide=document.getElementById('verifyGuide');
+ const icon=document.getElementById('verifyIcon');
+ const qs=new URLSearchParams(location.search);
+ const saved=sessionStorage.getItem('nexora_pending_verify_email')||'';
+ const email=(qs.get('email')||saved).trim();
+ emailEl.textContent=email||'Email tài khoản Nexora';
+ const setStatus=(t,bad=false)=>{status.textContent=t;status.style.color=bad?'#ff6b7a':'#55e39a'};
+ if(!C||!window.supabase){setStatus('Không thể kết nối Supabase.',true);return}
+ const db=window.supabase.createClient(C.SUPABASE_URL,C.SUPABASE_KEY);
+ try{
+   const code=qs.get('code');
+   if(code){const {error}=await db.auth.exchangeCodeForSession(code);if(error)throw error;history.replaceState(null,'',location.pathname+'?confirmed=1')}
+   const {data}=await db.auth.getSession();
+   if(data?.session){
+     sessionStorage.removeItem('nexora_pending_verify_email');
+     card.classList.add('nx-verified');icon.textContent='✅';title.textContent='Email đã được xác thực';text.textContent='Tài khoản Nexora của bạn đã sẵn sàng.';emailEl.textContent=data.session.user?.email||email||'';guide.textContent='Bạn có thể vào Nexora ngay bây giờ.';resend.hidden=true;login.hidden=true;dashboard.hidden=false;setStatus('✓ Xác thực thành công');return;
+   }
+ }catch(e){setStatus('Link xác thực không hợp lệ hoặc đã hết hạn. Bạn có thể gửi lại email bên dưới.',true)}
+ resend.onclick=async()=>{
+   if(!email){setStatus('Không tìm thấy email. Hãy quay lại trang đăng ký và thử lại.',true);return}
+   resend.disabled=true;setStatus('Đang gửi lại email...');
+   try{const emailRedirectTo=new URL('verify-email.html?confirmed=1',location.href).href;const {error}=await db.auth.resend({type:'signup',email,options:{emailRedirectTo}});if(error)throw error;setStatus('✓ Đã gửi lại. Hãy kiểm tra hộp thư và Spam.')}catch(e){setStatus(e.message||'Không thể gửi lại email.',true)}finally{resend.disabled=false}
+ };
+})();
+</script>
+</body>
+</html>
