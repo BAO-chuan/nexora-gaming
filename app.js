@@ -791,7 +791,16 @@ hydrateRankImages();authPage();dashboard();admin();adminEvents();adminProofs();i
   const box=$r('myRedemptionList');if(!box)return;
   try{
    const rows=await call('nexora_my_redemptions_v2',{p_limit:50});
-   box.innerHTML=(rows||[]).map(x=>`<div class="redemption-row"><div><b>${esc(x.display_value||x.reward_title)}</b><small>${typeText(x.reward_type)} • ${Number(x.points_cost).toLocaleString('vi-VN')} PTS</small></div><span class="redemption-status ${esc(x.status)}">${statusText(x.status)}</span>${x.admin_note?`<p>${esc(x.admin_note)}</p>`:''}</div>`).join('')||'<div class="empty-state">Bạn chưa có yêu cầu đổi thưởng.</div>';
+   box.innerHTML=(rows||[]).map(x=>{
+    const f=x.fulfillment||{};
+    const delivered=x.status==='fulfilled'&&x.reward_type==='game_card'
+      ?`<div class="reward-note"><b>Mã thẻ:</b> <code>${esc(f.card_code||'—')}</code><br><b>Serial:</b> <code>${esc(f.card_serial||'—')}</code></div>`
+      :x.status==='fulfilled'&&x.reward_type==='diamond'&&f.transaction_code
+        ?`<div class="reward-note"><b>Mã giao dịch / xác nhận:</b> ${esc(f.transaction_code)}</div>`
+        :x.status==='fulfilled'&&x.reward_type==='cash'&&f.transaction_code
+          ?`<div class="reward-note"><b>Mã giao dịch chuyển khoản:</b> ${esc(f.transaction_code)}</div>`:'';
+    return `<div class="redemption-row"><div><b>${esc(x.display_value||x.reward_title)}</b><small>${typeText(x.reward_type)} • ${Number(x.points_cost).toLocaleString('vi-VN')} PTS</small></div><span class="redemption-status ${esc(x.status)}">${statusText(x.status)}</span>${delivered}${x.admin_note?`<p><b>Admin:</b> ${esc(x.admin_note)}</p>`:''}</div>`;
+   }).join('')||'<div class="empty-state">Bạn chưa có yêu cầu đổi thưởng.</div>';
   }catch(e){box.textContent='Hãy chạy SQL v2.6.2. '+e.message}
  }
 
@@ -828,7 +837,25 @@ hydrateRankImages();authPage();dashboard();admin();adminEvents();adminProofs();i
   try{
    const [items,reqs]=await Promise.all([call('nexora_admin_rewards_v2',{p_limit:100}),call('nexora_admin_redemptions_v2',{p_limit:100})]);
    $r('adminRewardList').innerHTML=(items||[]).map(x=>`<div class="admin-v25-card"><b>${typeText(x.reward_type)} • ${esc(x.display_value||x.title)}</b><div class="admin-v25-meta"><span>${Number(x.points_cost).toLocaleString('vi-VN')} PTS</span><span>Kho: ${x.stock===-1?'∞':x.stock}</span><span>${x.is_active?'🟢 Đang bán':'⚫ Đã ẩn'}</span></div><small>${esc(x.title)}</small><div class="admin-v25-actions"><button class="ghost v26-toggle-reward" data-id="${x.id}" data-active="${x.is_active?'0':'1'}">${x.is_active?'Ẩn':'Hiện'}</button><button class="ghost admin-danger v26-delete-reward" data-id="${x.id}">Xóa</button></div></div>`).join('')||'Chưa có phần thưởng.';
-   $r('adminRedemptionList').innerHTML=(reqs||[]).map(x=>`<div class="admin-v25-card"><b>${esc(x.display_name||'Game thủ')} • ${esc(x.display_value||x.reward_title)}</b><div class="admin-v25-meta"><span>${Number(x.points_cost).toLocaleString('vi-VN')} PTS</span><span>${statusText(x.status)}</span><span>${new Date(x.created_at).toLocaleString('vi-VN')}</span></div><div class="admin-recipient-data">${esc(formatRecipient(x.reward_type,x.recipient_data))}</div><div class="admin-v25-actions">${x.status==='pending'?`<button class="ghost v26-status" data-id="${x.id}" data-status="processing">Đang xử lý</button><button class="ghost admin-danger v26-status" data-id="${x.id}" data-status="rejected">Từ chối + hoàn PTS</button>`:''}${x.status==='processing'?`<button class="btn v26-status" data-id="${x.id}" data-status="fulfilled">✓ Đã trao</button><button class="ghost admin-danger v26-status" data-id="${x.id}" data-status="rejected">Từ chối + hoàn PTS</button>`:''}</div></div>`).join('')||'Chưa có yêu cầu.';
+   $r('adminRedemptionList').innerHTML=(reqs||[]).map(x=>{
+    const d=x.recipient_data||{};
+    const recipient=x.reward_type==='diamond'
+      ?`UID game: ${esc(d.game_uid||'—')}`
+      :x.reward_type==='game_card'
+        ?`Loại thẻ: ${esc(d.provider||'—')}`
+        :`Ngân hàng: ${esc(d.bank_name||'—')} • STK: ${esc(d.account_number||'—')} • Chủ TK: ${esc(d.account_holder||'—')}`;
+    const f=x.fulfillment||{};
+    const delivered=x.status==='fulfilled'&&x.reward_type==='game_card'
+      ?`<div class="admin-recipient-data"><b>Mã thẻ:</b> ${esc(f.card_code||'—')} • <b>Serial:</b> ${esc(f.card_serial||'—')}</div>`
+      :x.status==='fulfilled'&&f.transaction_code
+        ?`<div class="admin-recipient-data"><b>Mã giao dịch:</b> ${esc(f.transaction_code)}</div>`:'';
+    const fulfill=x.status==='processing'
+      ?x.reward_type==='game_card'
+        ?`<div class="admin-v25-actions"><input class="v2685-card-code" data-id="${x.id}" maxlength="200" placeholder="Mã thẻ *"><input class="v2685-card-serial" data-id="${x.id}" maxlength="200" placeholder="Serial *"></div>`
+        :`<div class="admin-v25-actions"><input class="v2685-transaction" data-id="${x.id}" maxlength="200" placeholder="${x.reward_type==='cash'?'Mã giao dịch chuyển khoản':'Mã giao dịch / xác nhận nạp'}"></div>`
+      :'';
+    return `<div class="admin-v25-card"><b>${esc(x.display_name||'Game thủ')} • ${esc(x.display_value||x.reward_title)}</b><div class="admin-v25-meta"><span>${Number(x.points_cost).toLocaleString('vi-VN')} PTS</span><span>${statusText(x.status)}</span><span>${new Date(x.created_at).toLocaleString('vi-VN')}</span></div><div class="admin-recipient-data">${recipient}</div>${delivered}${fulfill}<div class="admin-v25-actions">${x.status==='pending'?`<button class="ghost v26-status" data-id="${x.id}" data-status="processing">Đang xử lý</button><button class="ghost admin-danger v26-status" data-id="${x.id}" data-status="rejected">Từ chối + hoàn PTS</button>`:''}${x.status==='processing'?`<button class="btn v26-status" data-id="${x.id}" data-type="${x.reward_type}" data-status="fulfilled">✓ Đã trao</button><button class="ghost admin-danger v26-status" data-id="${x.id}" data-status="rejected">Từ chối + hoàn PTS</button>`:''}</div></div>`;
+   }).join('')||'Chưa có yêu cầu.';
    bindAdmin();
   }catch(e){$r('adminRewardList').textContent='Hãy chạy SQL v2.6.2. '+e.message}
  }
@@ -840,9 +867,29 @@ hydrateRankImages();authPage();dashboard();admin();adminEvents();adminProofs();i
   document.querySelectorAll('.v26-delete-reward').forEach(b=>b.onclick=async()=>{if(!confirm('Xóa phần thưởng này? Các yêu cầu cũ vẫn được giữ.'))return;try{await call('nexora_admin_delete_reward',{p_reward_id:b.dataset.id});await adminRewards()}catch(e){notify(e.message,true)}});
   document.querySelectorAll('.v26-status').forEach(b=>b.onclick=async()=>{
    let note='';
-   if(b.dataset.status==='rejected'){note=prompt('Lý do từ chối (PTS sẽ được hoàn tự động):')||'';if(!note.trim())return}
-   else if(b.dataset.status==='fulfilled'){note=prompt('Ghi chú/mã giao dịch (không bắt buộc):')||''}
-   try{const out=await call('nexora_admin_set_redemption_status',{p_redemption_id:b.dataset.id,p_status:b.dataset.status,p_note:note});notify(out?.message||'Đã cập nhật ✓');await adminRewards()}catch(e){notify(e.message,true)}
+   if(b.dataset.status==='rejected'){
+    note=prompt('Lý do từ chối (PTS sẽ được hoàn tự động):')||'';
+    if(!note.trim())return;
+   }
+   try{
+    let out;
+    if(b.dataset.status==='fulfilled'){
+     const id=b.dataset.id,type=b.dataset.type;
+     const cardCode=document.querySelector(`.v2685-card-code[data-id="${id}"]`)?.value.trim()||'';
+     const cardSerial=document.querySelector(`.v2685-card-serial[data-id="${id}"]`)?.value.trim()||'';
+     const transaction=document.querySelector(`.v2685-transaction[data-id="${id}"]`)?.value.trim()||'';
+     if(type==='game_card'&&(!cardCode||!cardSerial)){notify('Bạn cần nhập đủ Mã thẻ và Serial trước khi bấm Đã trao.',true);return}
+     out=await call('nexora_admin_fulfill_redemption_v2685',{
+      p_redemption_id:id,
+      p_card_code:cardCode||null,
+      p_card_serial:cardSerial||null,
+      p_transaction_code:transaction||null
+     });
+    }else{
+     out=await call('nexora_admin_set_redemption_status',{p_redemption_id:b.dataset.id,p_status:b.dataset.status,p_note:note});
+    }
+    notify(out?.message||'Đã cập nhật ✓');await adminRewards()
+   }catch(e){notify(e.message,true)}
   });
  }
 
