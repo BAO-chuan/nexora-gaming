@@ -117,6 +117,36 @@ function initMissionCenter(){
  if($('refreshMissionCenter'))$('refreshMissionCenter').onclick=loadMissionCenter;
 }
 
+
+async function loadAdminProofNotificationsV266(){
+ const box=$('adminProofNotificationList');
+ if(!box&&!$('adminProofBadge'))return;
+ const {data,error}=await db.rpc('nexora_admin_proof_notifications_v266',{p_limit:50});
+ if(error){if(box)box.textContent='Hãy chạy SQL v2.6.6 để bật thông báo Proof.';return}
+ const rows=data||[], unread=rows.filter(x=>!x.is_read).length;
+ ['adminProofBadge','adminNotifTabBadge'].forEach(id=>{const el=$(id);if(el){el.textContent=unread;el.classList.toggle('hidden',unread===0)}});
+ if(box)box.innerHTML=rows.map(n=>`<div class="notification-item admin-proof-notif ${n.is_read?'':'unread'}">
+   <div class="proof-notif-icon">🛡️</div><div><b>${esc(n.title)}</b><div>${esc(n.detail||'')}</div>
+   <small>${communityTime(n.created_at)}</small><button class="btn small admin-open-proof" type="button">Mở bằng chứng</button></div>
+ </div>`).join('')||'<div class="empty-state">Chưa có thông báo Proof.</div>';
+ box?.querySelectorAll('.admin-open-proof').forEach(b=>b.onclick=()=>{
+   document.querySelector('[data-admin-module="proof"]')?.click();
+   adminProofs();
+ });
+}
+async function markAdminProofNotificationsReadV266(){
+ const {error}=await db.rpc('nexora_admin_mark_proof_notifications_read_v266');
+ if(!error)loadAdminProofNotificationsV266();
+}
+function initAdminProofNotificationsV266(){
+ if(!$('adminProofBell')&&!$('adminProofNotificationList'))return;
+ $('adminProofBell')&&($('adminProofBell').onclick=()=>document.querySelector('[data-admin-module="notifications"]')?.click());
+ $('refreshAdminProofNotifications')&&($('refreshAdminProofNotifications').onclick=loadAdminProofNotificationsV266);
+ $('markAdminProofNotificationsRead')&&($('markAdminProofNotificationsRead').onclick=markAdminProofNotificationsReadV266);
+ loadAdminProofNotificationsV266();
+ setInterval(loadAdminProofNotificationsV266,15000);
+}
+
 async function adminEvents(){
  if(!$('eventForm'))return;
  async function load(){const {data}=await db.from('nexora_events').select('*,nexora_event_entries(count)').order('created_at',{ascending:false});$('adminEvents').textContent=(data||[]).length;$('adminEventList').innerHTML=(data||[]).map(e=>`<div class="admin-event"><b>${esc(e.title)}</b> <span class="pill reward">${esc(e.reward_text)}</span><br><small>${fmtDate(e.starts_at)} → ${fmtDate(e.ends_at)} • ${(e.nexora_event_entries?.[0]?.count||0)} người tham gia • ${e.is_published?'Đang công bố':'Đang ẩn'}</small><div class="admin-event-actions"><button class="ghost ev-toggle" data-id="${e.id}" data-v="${e.is_published}">${e.is_published?'Ẩn':'Công bố'}</button><button class="ghost ev-entries" data-id="${e.id}">Người tham gia</button></div></div>`).join('')||'Chưa có Event.';document.querySelectorAll('.ev-toggle').forEach(b=>b.onclick=async()=>{await db.from('nexora_events').update({is_published:b.dataset.v!=='true'}).eq('id',b.dataset.id);load()});document.querySelectorAll('.ev-entries').forEach(b=>b.onclick=()=>loadEntries(b.dataset.id))}
@@ -208,7 +238,7 @@ function showProofForm(type,id,title,points,user){
      window.sessionStorage.removeItem('nexora_last_media_url');
      msg('dashMsg',data.message||'Đã gửi bằng chứng');
      if(type==='random')await loadRandomAcceptance(user);
-     loadProofs(user);
+     loadProofs(user);loadProofNotificationsV266();
    }catch(err){msg('dashMsg',err?.message||'Không thể gửi bằng chứng.',true)}
    finally{btn.disabled=false;btn.textContent='Gửi Admin duyệt'}
  };
@@ -262,7 +292,7 @@ async function adminProofs(){
      let note='';if(b.dataset.status==='rejected')note=prompt('Lý do từ chối (không bắt buộc):')||'';
      const {data,error}=await db.rpc('nexora_admin_review_challenge_proof',{p_submission_id:b.dataset.id,p_status:b.dataset.status,p_admin_note:note});
      if(error)return msg('adminMsg',error.message,true);
-     msg('adminMsg',data?.message||'Đã xử lý',!data?.ok);load()
+     msg('adminMsg',data?.message||'Đã xử lý',!data?.ok);load();loadAdminProofNotificationsV266()
    })
  }
  if($('refreshProofAdmin'))$('refreshProofAdmin').onclick=load;await load()
@@ -342,6 +372,33 @@ async function loadCommunityFeed(){
  box.querySelectorAll('.feed-comment-form').forEach(f=>f.onsubmit=async ev=>{ev.preventDefault();const input=f.querySelector('input'),body=input.value.trim();if(!body)return;const r=await db.rpc('nexora_add_comment',{p_activity_id:f.dataset.id,p_body:body});if(r.error)return msg('dashMsg',r.error.message,true);input.value='';await Promise.all([loadCommunityFeed(),loadNotifications(),loadCommunityMissions()])});
 }
 async function loadNotifications(){const box=$('notificationList');if(!box)return;const {data,error}=await db.rpc('nexora_my_notifications',{p_limit:30});if(error){box.textContent='Chạy SQL v2.4 để bật Notification Center.';return}box.innerHTML=(data||[]).map(n=>`<div class="notification-item ${n.is_read?'':'unread'}"><b>${esc(n.title)}</b><div>${esc(n.detail||'')}</div><small>${n.actor_name?esc(n.actor_name)+' • ':''}${communityTime(n.created_at)}</small></div>`).join('')||'<div class="empty-state">Chưa có thông báo.</div>';}
+
+async function loadProofNotificationsV266(){
+ const box=$('proofNotificationList'),badge=$('userProofBadge');
+ if(!box&&!badge)return;
+ const {data,error}=await db.rpc('nexora_my_proof_notifications_v266',{p_limit:30});
+ if(error){if(box)box.textContent='Hãy chạy SQL v2.6.6 để bật thông báo Proof.';return}
+ const rows=data||[], unread=rows.filter(x=>!x.is_read).length;
+ if(badge){badge.textContent=unread;badge.classList.toggle('hidden',unread===0)}
+ if(box)box.innerHTML=rows.map(n=>`<div class="notification-item proof-notif ${n.is_read?'':'unread'}">
+   <div class="proof-notif-icon">${n.kind==='proof_approved'?'✅':n.kind==='proof_rejected'?'❌':'🛡️'}</div>
+   <div><b>${esc(n.title)}</b><div>${esc(n.detail||'')}</div><small>${communityTime(n.created_at)}</small>
+   ${n.proof_submission_id?`<button class="ghost small proof-notif-open" type="button">Mở lịch sử Proof</button>`:''}</div>
+ </div>`).join('')||'<div class="empty-state">Chưa có thông báo Proof.</div>';
+ box?.querySelectorAll('.proof-notif-open').forEach(b=>b.onclick=()=>{
+   document.querySelector('[data-dashboard-tab="proof"]')?.click();
+   setTimeout(()=>document.querySelector('[data-module-tab="proof-center"]')?.click(),60);
+ });
+}
+async function markProofNotificationsReadV266(){
+ const {error}=await db.rpc('nexora_mark_proof_notifications_read_v266');
+ if(!error)loadProofNotificationsV266();
+}
+function openUserProofNotificationsV266(){
+ document.querySelector('[data-dashboard-tab="community"]')?.click();
+ setTimeout(()=>document.querySelector('[data-module-tab="notifications"]')?.click(),70);
+}
+
 async function loadCommunityMissions(){const box=$('communityMissionList');if(!box)return;const {data,error}=await db.rpc('nexora_my_community_missions');if(error){box.textContent='Chạy SQL v2.4 để bật Community Missions.';return}box.innerHTML=(data||[]).map(m=>{const pct=Math.min(100,Math.round(Number(m.progress)/Number(m.target)*100));return `<article class="mission-card"><b>${esc(m.title)}</b><small>${esc(m.detail)}</small><div class="progress-track"><i style="width:${pct}%"></i></div><footer><span>${m.progress}/${m.target} • +${m.points} PTS / +${m.xp} XP</span><button class="${m.claimed?'ghost':'btn'} claim-community-mission" data-key="${m.key}" ${m.claimed||m.progress<m.target?'disabled':''}>${m.claimed?'✓ Đã nhận':'Nhận thưởng'}</button></footer></article>`}).join('');box.querySelectorAll('.claim-community-mission').forEach(b=>b.onclick=async()=>{const r=await db.rpc('nexora_claim_community_mission',{p_key:b.dataset.key});msg('dashMsg',r.error?.message||r.data?.message||'Đã xử lý',!!r.error||!r.data?.ok);await Promise.all([loadCommunityMissions(),loadNotifications()])})}
 async function loadClanLeaderboard(){const box=$('clanLeaderboardList');if(!box)return;const {data,error}=await db.rpc('nexora_clan_leaderboard',{p_limit:20});if(error){box.textContent='Chạy SQL v2.4 để bật BXH Clan.';return}box.innerHTML=(data||[]).map((c,i)=>`<article class="clan-directory-item"><div><b>#${i+1} [${esc(c.tag)}] ${esc(c.name)}</b><small>Level ${c.level} • ${c.xp} Clan XP • ${c.members}/30 thành viên</small></div></article>`).join('')||'<div class="empty-state">Chưa có Clan.</div>'}
 async function loadClan(){const box=$('myClanBox'),form=$('createClanForm');if(!box)return;const {data,error}=await db.rpc('nexora_my_clan');if(error){box.textContent='Không tải được Clan.';return}if(!data?.in_clan){$('myClanPill').textContent='CHƯA CÓ CLAN';box.innerHTML='<div class="empty-state">Bạn chưa gia nhập Clan nào.</div>';form?.classList.remove('hidden');return}form?.classList.add('hidden');const lb=await db.rpc('nexora_clan_leaderboard',{p_limit:50});const c=(lb.data||[]).find(x=>x.id===data.id)||{};$('myClanPill').textContent=`[${esc(data.tag)}] ${esc(data.name)}`;box.innerHTML=`<div class="clan-hero"><div><span class="clan-tag">[${esc(data.tag)}]</span><h3>${esc(data.name)}</h3><p>${esc(data.description||'Clan Nexora')}</p></div><button id="leaveClanBtn" class="ghost">${data.my_role==='owner'?'Giải tán Clan':'Rời Clan'}</button></div><div class="clan-level-box"><div><small>CLAN LEVEL</small><b>${c.level||1}</b></div><div><small>CLAN XP</small><b>${c.xp||0}</b></div><div><small>THÀNH VIÊN</small><b>${(data.members||[]).length}/30</b></div></div><div class="clan-members">${(data.members||[]).map(m=>`<div><a href="profile.html?p=${encodeURIComponent(m.public_code)}"><b>${m.role==='owner'?'👑 ':m.role==='co_leader'?'⭐ ':''}${esc(m.display_name)}</b></a><small class="clan-role">${m.role==='owner'?'OWNER':m.role==='co_leader'?'CO-LEADER':'MEMBER'}</small>${data.my_role==='owner'&&m.role!=='owner'?` <button class="feed-action clan-role-btn" data-user="${m.user_id||''}" data-role="${m.role==='co_leader'?'member':'co_leader'}">${m.role==='co_leader'?'Hạ Member':'Lên Co-Leader'}</button>`:''}</div>`).join('')}</div>`;$('leaveClanBtn').onclick=async()=>{if(!confirm(data.my_role==='owner'?'Giải tán Clan và đưa toàn bộ thành viên ra ngoài?':'Rời Clan?'))return;const r=await db.rpc('nexora_leave_clan');msg('dashMsg',r.error?.message||r.data?.message||'Đã xử lý',!!r.error||!r.data?.ok);await Promise.all([loadClan(),loadClanDirectory(),loadClanLeaderboard()])};box.querySelectorAll('.clan-role-btn').forEach(b=>b.onclick=async()=>{if(!b.dataset.user)return msg('dashMsg','Cần SQL v2.4 cập nhật danh sách thành viên.',true);const r=await db.rpc('nexora_clan_set_role',{p_user_id:b.dataset.user,p_role:b.dataset.role});msg('dashMsg',r.error?.message||r.data?.message||'Đã xử lý',!!r.error);loadClan()})}
@@ -353,10 +410,10 @@ async function adminTournament(){
  $('tournamentAdminForm').onsubmit=async e=>{e.preventDefault();const start=$('tournamentStart').value,reg=$('tournamentRegEnd').value;if(!start||!reg)return;const r=await db.rpc('nexora_admin_create_tournament',{p_title:$('tournamentTitle').value.trim(),p_description:$('tournamentDescription').value.trim(),p_reward_text:$('tournamentReward').value.trim(),p_starts_at:new Date(start).toISOString(),p_registration_ends_at:new Date(reg).toISOString(),p_max_players:+$('tournamentMax').value});msg('adminMsg',r.error?.message||r.data?.message||'Đã xử lý',!!r.error);if(r.data?.ok)e.target.reset();load()};$('refreshAdminTournaments').onclick=load;await load();
 }
 
-async function v24Dashboard(){initMissionCenter();if(!$('communityMissionList'))return;await Promise.all([loadNotifications(),loadCommunityMissions(),loadClanLeaderboard()]);$('refreshCommunityMissions').onclick=loadCommunityMissions;$('refreshClanLeaderboard').onclick=loadClanLeaderboard;$('markNotificationsRead').onclick=async()=>{await db.rpc('nexora_mark_notifications_read');loadNotifications()}}
+async function v24Dashboard(){initMissionCenter();if(!$('communityMissionList'))return;await Promise.all([loadNotifications(),loadProofNotificationsV266(),loadCommunityMissions(),loadClanLeaderboard()]);$('refreshCommunityMissions').onclick=loadCommunityMissions;$('refreshClanLeaderboard').onclick=loadClanLeaderboard;$('markNotificationsRead').onclick=async()=>{await db.rpc('nexora_mark_notifications_read');loadNotifications()};if($('markProofNotificationsRead'))$('markProofNotificationsRead').onclick=markProofNotificationsReadV266;if($('userProofBell'))$('userProofBell').onclick=openUserProofNotificationsV266;setInterval(loadProofNotificationsV266,20000)}
 async function v24Public(){if(!$('publicTournamentBadge'))return;const code=new URLSearchParams(location.search).get('p');if(!code)return;const {data}=await db.rpc('nexora_public_competitive_stats',{p_public_code:code});if(!data?.ok)return;$('publicTournamentBadge').textContent=data.tournament_wins?`🏆 Champion ×${data.tournament_wins}`:(data.best_placement?`Top ${data.best_placement}`:'—');$('publicClanLevel').textContent=data.clan_level?`Lv.${data.clan_level}`:'—'}
 
-hydrateRankImages();authPage();dashboard();admin();adminEvents();adminProofs();publicProfile();communityDashboard();publicSocial();adminTournament();v24Dashboard();v24Public();
+hydrateRankImages();authPage();dashboard();admin();adminEvents();adminProofs();initAdminProofNotificationsV266();publicProfile();communityDashboard();publicSocial();adminTournament();v24Dashboard();v24Public();
 })();
 
 // =========================================================
