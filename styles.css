@@ -701,3 +701,18 @@ html[data-season-rank="master"]{--rank-accent:#ff4b23;--rank-deep:#8b130f}
     display:none;
   }
 }
+
+
+/* v2.6.9.3 — Lynkora sponsor / voluntary support */
+.sponsor-support-banner .lynkora-promo-brand{align-items:flex-start}
+.sponsor-support-banner .lynkora-promo-icon{font-size:23px}
+.sponsor-support-banner p strong{color:#dce8f5;font-weight:850}
+.sponsor-support-note{margin-top:7px!important;color:#b7c5d5!important}
+.sponsor-support-policy{display:block;margin-top:8px;color:#71849a;font-size:11px;line-height:1.4}
+.sponsor-support-cta{text-align:center;line-height:1.25}
+@media(max-width:700px){
+  .sponsor-support-banner{align-items:stretch;flex-direction:column}
+  .sponsor-support-banner .lynkora-promo-brand{align-items:flex-start}
+  .sponsor-support-cta{width:100%;box-sizing:border-box}
+  .sponsor-support-policy{font-size:10px}
+}
