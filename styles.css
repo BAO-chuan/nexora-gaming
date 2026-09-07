@@ -381,3 +381,17 @@ html[data-season-rank="master"]{--rank-accent:#ff4b23;--rank-deep:#8b130f}
 .proof-media-grid .proof-preview{width:100%;max-height:360px;object-fit:contain}
 .admin-proof-verify{display:grid;gap:5px;margin:10px 0;padding:10px;border-left:3px solid #ff9b20;background:rgba(255,155,32,.06);font-size:12px}
 @media(max-width:700px){.proof-media-grid{grid-template-columns:1fr}}
+
+/* v2.6.4 — Mission Center */
+.mission-center-tabs{display:flex;gap:8px;overflow-x:auto;margin:14px 0 10px;padding-bottom:4px}
+.mission-center-tab{white-space:nowrap;border:1px solid rgba(255,255,255,.1);background:#111720;color:#bfc8d2;border-radius:999px;padding:9px 13px;font-weight:850}
+.mission-center-tab.active{border-color:#ff9b20;color:#fff;background:rgba(255,155,32,.14);box-shadow:0 0 20px rgba(255,155,32,.08)}
+.mission-center-summary{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}.mission-center-summary span{padding:7px 10px;border-radius:10px;background:rgba(255,255,255,.04);font-size:12px}.mission-center-summary b{color:#ffb13b}
+.mission-center-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.mission-center-card{padding:15px;border:1px solid rgba(255,255,255,.08);border-radius:15px;background:linear-gradient(145deg,rgba(255,255,255,.035),rgba(255,255,255,.015))}
+.mission-center-card.ready{border-color:rgba(255,155,32,.42);box-shadow:0 0 22px rgba(255,155,32,.08)}.mission-center-card.claimed{opacity:.72}
+.mission-center-card-head,.mission-center-card footer{display:flex;align-items:center;justify-content:space-between;gap:10px}.mission-center-icon{font-size:20px}.mission-period{font-size:10px;font-weight:900;color:#8e99a5;text-transform:uppercase}
+.mission-center-card h3{margin:10px 0 6px}.mission-center-card p{min-height:38px;margin:0 0 12px;color:#aeb8c3;font-size:13px;line-height:1.5}
+.mission-progress{display:grid;grid-template-columns:1fr auto;gap:9px;align-items:center;margin-bottom:12px}.mission-progress>div{height:8px;border-radius:99px;background:#090d13;overflow:hidden}.mission-progress i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#ff7a18,#ffc247)}.mission-progress span{font-size:11px;font-weight:900}
+.mission-center-card footer strong{color:#ffc247}
+@media(max-width:700px){.mission-center-grid{grid-template-columns:1fr}}
