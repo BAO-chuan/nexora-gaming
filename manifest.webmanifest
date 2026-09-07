@@ -1,0 +1,11 @@
+{
+  "name": "Nexora Gaming",
+  "short_name": "Nexora",
+  "description": "Nexora Gaming community dashboard",
+  "start_url": "./dashboard.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#07090d",
+  "theme_color": "#0b0d12",
+  "lang": "vi"
+}

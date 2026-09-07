@@ -439,7 +439,7 @@ async function adminProofs(){
        </div>
        <p>${esc(x.note||'')}</p>
        <div class="proof-media-grid"><div><b>Proof 1 — Kết quả</b>${proofMedia(url,x.proof_mime_type)}</div>${x.proof_url_2?`<div><b>Proof 2 — Đội hình/bổ sung</b>${proofMedia(x.proof_url_2,'image/')}</div>`:''}</div>
-       <div class="proof-actions"><button class="btn proof-review" data-id="${x.submission_id}" data-status="approved">✓ Duyệt + cộng điểm</button><button class="ghost proof-review" data-id="${x.submission_id}" data-status="rejected">Từ chối</button></div>
+       <div class="proof-actions"><button class="btn proof-review" data-id="${x.submission_id}" data-user="${x.user_id||''}" data-points="${x.points||0}" data-title="${esc(x.challenge_title||'Challenge')}" data-status="approved">✓ Duyệt + cộng điểm</button><button class="ghost proof-review" data-id="${x.submission_id}" data-user="${x.user_id||''}" data-points="${x.points||0}" data-title="${esc(x.challenge_title||'Challenge')}" data-status="rejected">Từ chối</button></div>
      </article>`
    }));
    box.innerHTML=cards.join('')||'<div class="empty-state">Không có bằng chứng nào đang chờ duyệt.</div>';
@@ -447,7 +447,12 @@ async function adminProofs(){
      let note='';if(b.dataset.status==='rejected')note=prompt('Lý do từ chối (không bắt buộc):')||'';
      const {data,error}=await db.rpc('nexora_admin_review_challenge_proof',{p_submission_id:b.dataset.id,p_status:b.dataset.status,p_admin_note:note});
      if(error)return msg('adminMsg',error.message,true);
-     msg('adminMsg',data?.message||'Đã xử lý',!data?.ok);load();loadAdminProofNotificationsV266()
+     msg('adminMsg',data?.message||'Đã xử lý',!data?.ok);
+     if(data?.ok!==false&&window.NEXORA_PUSH&&b.dataset.user){
+       const approved=b.dataset.status==='approved';
+       window.NEXORA_PUSH.adminNotify(b.dataset.user,approved?'🛡️ Proof đã được duyệt':'🛡️ Proof bị từ chối',approved?`${b.dataset.title||'Challenge'} đã được duyệt. +${b.dataset.points||0} PTS đã được ghi nhận.`:`${b.dataset.title||'Challenge'} cần gửi lại bằng chứng.${note?` Lý do: ${note}`:''}`,'./dashboard.html','proof-review');
+     }
+     load();loadAdminProofNotificationsV266()
    })
  }
  if($('refreshProofAdmin'))$('refreshProofAdmin').onclick=load;await load()
@@ -1126,7 +1131,7 @@ document.addEventListener('DOMContentLoaded',initSiteAnnouncementsV269);
         ?`<div class="admin-v25-actions"><input class="v2685-card-code" data-id="${x.id}" maxlength="200" placeholder="Mã thẻ *"><input class="v2685-card-serial" data-id="${x.id}" maxlength="200" placeholder="Serial *"></div>`
         :`<div class="admin-v25-actions"><input class="v2685-transaction" data-id="${x.id}" maxlength="200" placeholder="${x.reward_type==='cash'?'Mã giao dịch chuyển khoản':'Mã giao dịch / xác nhận nạp'}"></div>`
       :'';
-    return `<div class="admin-v25-card"><b>${esc(x.display_name||'Game thủ')} • ${esc(x.display_value||x.reward_title)}</b><div class="admin-v25-meta"><span>${Number(x.points_cost).toLocaleString('vi-VN')} PTS</span><span>${statusText(x.status)}</span><span>${new Date(x.created_at).toLocaleString('vi-VN')}</span></div><div class="admin-recipient-data">${recipient}</div>${delivered}${fulfill}<div class="admin-v25-actions">${x.status==='pending'?`<button class="ghost v26-status" data-id="${x.id}" data-status="processing">Đang xử lý</button><button class="ghost admin-danger v26-status" data-id="${x.id}" data-status="rejected">Từ chối + hoàn PTS</button>`:''}${x.status==='processing'?`<button class="btn v26-status" data-id="${x.id}" data-type="${x.reward_type}" data-status="fulfilled">✓ Đã trao</button><button class="ghost admin-danger v26-status" data-id="${x.id}" data-status="rejected">Từ chối + hoàn PTS</button>`:''}</div></div>`;
+    return `<div class="admin-v25-card"><b>${esc(x.display_name||'Game thủ')} • ${esc(x.display_value||x.reward_title)}</b><div class="admin-v25-meta"><span>${Number(x.points_cost).toLocaleString('vi-VN')} PTS</span><span>${statusText(x.status)}</span><span>${new Date(x.created_at).toLocaleString('vi-VN')}</span></div><div class="admin-recipient-data">${recipient}</div>${delivered}${fulfill}<div class="admin-v25-actions">${x.status==='pending'?`<button class="ghost v26-status" data-id="${x.id}" data-user="${x.user_id||''}" data-label="${esc(x.display_value||x.reward_title||'Phần thưởng')}" data-status="processing">Đang xử lý</button><button class="ghost admin-danger v26-status" data-id="${x.id}" data-user="${x.user_id||''}" data-label="${esc(x.display_value||x.reward_title||'Phần thưởng')}" data-status="rejected">Từ chối + hoàn PTS</button>`:''}${x.status==='processing'?`<button class="btn v26-status" data-id="${x.id}" data-user="${x.user_id||''}" data-label="${esc(x.display_value||x.reward_title||'Phần thưởng')}" data-type="${x.reward_type}" data-status="fulfilled">✓ Đã trao</button><button class="ghost admin-danger v26-status" data-id="${x.id}" data-user="${x.user_id||''}" data-label="${esc(x.display_value||x.reward_title||'Phần thưởng')}" data-status="rejected">Từ chối + hoàn PTS</button>`:''}</div></div>`;
    }).join('')||'Chưa có yêu cầu.';
    bindAdmin();
   }catch(e){$r('adminRewardList').textContent='Hãy chạy SQL v2.6.2. '+e.message}
@@ -1160,7 +1165,13 @@ document.addEventListener('DOMContentLoaded',initSiteAnnouncementsV269);
     }else{
      out=await call('nexora_admin_set_redemption_status',{p_redemption_id:b.dataset.id,p_status:b.dataset.status,p_note:note});
     }
-    notify(out?.message||'Đã cập nhật ✓');await adminRewards()
+    notify(out?.message||'Đã cập nhật ✓');
+    if(window.NEXORA_PUSH&&b.dataset.user){
+      const labels={processing:'🎁 Đổi thưởng đang được xử lý',fulfilled:'🎁 Đổi thưởng đã hoàn tất',rejected:'🎁 Yêu cầu đổi thưởng bị từ chối'};
+      const bodies={processing:`${b.dataset.label||'Phần thưởng'} đang được Admin xử lý.`,fulfilled:`${b.dataset.label||'Phần thưởng'} đã được Admin hoàn tất. Mở Reward Center để xem chi tiết.`,rejected:`${b.dataset.label||'Phần thưởng'} đã bị từ chối và PTS được hoàn theo hệ thống.`};
+      window.NEXORA_PUSH.adminNotify(b.dataset.user,labels[b.dataset.status]||'🎁 Cập nhật đổi thưởng',bodies[b.dataset.status]||'Trạng thái đổi thưởng của bạn vừa thay đổi.','./dashboard.html','reward-status');
+    }
+    await adminRewards()
    }catch(e){notify(e.message,true)}
   });
  }
@@ -1286,20 +1297,20 @@ document.addEventListener('DOMContentLoaded',initSiteAnnouncementsV269);
        ${t.evidence_url?`<a class="ghost small support-evidence" href="${escs(t.evidence_url)}" target="_blank" rel="noopener">Mở bằng chứng</a>`:''}
        <div class="support-thread">${(t.messages||[]).map(m=>`<div class="support-message ${m.sender_role==='admin'?'admin':'user'}"><b>${m.sender_role==='admin'?'👨‍💻 Admin':'👤 Người dùng'}</b><span>${escs(m.message)}</span><small>${fmt(m.created_at)}</small></div>`).join('')}</div>
        <div class="admin-v25-actions">
-         ${t.status==='pending'?`<button class="ghost support-status-btn" data-id="${t.id}" data-status="processing">Nhận xử lý</button>`:''}
-         ${!['resolved','closed'].includes(t.status)?`<button class="btn support-status-btn" data-id="${t.id}" data-status="resolved">✓ Đã giải quyết</button>`:''}
-         ${t.status==='resolved'?`<button class="ghost support-status-btn" data-id="${t.id}" data-status="closed">Đóng Ticket</button>`:''}
+         ${t.status==='pending'?`<button class="ghost support-status-btn" data-id="${t.id}" data-user="${t.user_id||''}" data-code="${escs(t.ticket_code||'Ticket')}" data-status="processing">Nhận xử lý</button>`:''}
+         ${!['resolved','closed'].includes(t.status)?`<button class="btn support-status-btn" data-id="${t.id}" data-user="${t.user_id||''}" data-code="${escs(t.ticket_code||'Ticket')}" data-status="resolved">✓ Đã giải quyết</button>`:''}
+         ${t.status==='resolved'?`<button class="ghost support-status-btn" data-id="${t.id}" data-user="${t.user_id||''}" data-code="${escs(t.ticket_code||'Ticket')}" data-status="closed">Đóng Ticket</button>`:''}
        </div>
-       ${t.status!=='closed'?`<form class="support-admin-reply" data-id="${t.id}"><input maxlength="1000" placeholder="Trả lời người dùng..." required><button class="ghost small">Gửi phản hồi</button></form>`:''}
+       ${t.status!=='closed'?`<form class="support-admin-reply" data-id="${t.id}" data-user="${t.user_id||''}" data-code="${escs(t.ticket_code||'Ticket')}"><input maxlength="1000" placeholder="Trả lời người dùng..." required><button class="ghost small">Gửi phản hồi</button></form>`:''}
      </article>`).join('')||'<div class="empty-state">Không có Ticket phù hợp.</div>';
 
      box.querySelectorAll('.support-status-btn').forEach(b=>b.onclick=async()=>{
-       try{await rpc('nexora_admin_set_support_status_v268',{p_ticket_id:b.dataset.id,p_status:b.dataset.status});await loadAdminTickets();toast('Đã cập nhật Ticket ✓')}
+       try{await rpc('nexora_admin_set_support_status_v268',{p_ticket_id:b.dataset.id,p_status:b.dataset.status});if(window.NEXORA_PUSH&&b.dataset.user&&['resolved','closed'].includes(b.dataset.status)){window.NEXORA_PUSH.adminNotify(b.dataset.user,b.dataset.status==='resolved'?'🛟 Support đã giải quyết':'🛟 Ticket đã đóng',`${b.dataset.code||'Ticket'} ${b.dataset.status==='resolved'?'đã được Admin đánh dấu giải quyết.':'đã được đóng.'}`,'./dashboard.html','support-status')}await loadAdminTickets();toast('Đã cập nhật Ticket ✓')}
        catch(e){toast(e.message,true)}
      });
      box.querySelectorAll('.support-admin-reply').forEach(f=>f.onsubmit=async e=>{
        e.preventDefault();const input=f.querySelector('input');const msg=input.value.trim();if(!msg)return;
-       try{await rpc('nexora_admin_reply_support_ticket_v268',{p_ticket_id:f.dataset.id,p_message:msg});input.value='';await loadAdminTickets();toast('Đã gửi phản hồi ✓')}
+       try{await rpc('nexora_admin_reply_support_ticket_v268',{p_ticket_id:f.dataset.id,p_message:msg});if(window.NEXORA_PUSH&&f.dataset.user){window.NEXORA_PUSH.adminNotify(f.dataset.user,'🛟 Admin đã phản hồi Support',`${f.dataset.code||'Ticket'} có phản hồi mới từ Admin.`,'./dashboard.html','support-reply')}input.value='';await loadAdminTickets();toast('Đã gửi phản hồi ✓')}
        catch(err){toast(err.message,true)}
      });
    }catch(e){box.textContent='Hãy chạy SQL v2.6.8 để bật Support Desk. '+e.message}
@@ -1408,4 +1419,53 @@ document.addEventListener('DOMContentLoaded',initSiteAnnouncementsV269);
      finally{if(btn)btn.disabled=false}
    });
  });
+})();
+
+// =========================================================
+// Nexora v2.6.10 — Real Web Push
+// IMPORTANT: this block is outside the main IIFE. Use window.NEXORA_DB only.
+// =========================================================
+(function initNexoraRealWebPush(){
+ const el=id=>document.getElementById(id);
+ const client=()=>window.NEXORA_DB;
+ const isIOS=()=>/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+ const isStandalone=()=>window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone===true;
+ const supported=()=>('serviceWorker' in navigator)&&('PushManager' in window)&&('Notification' in window);
+ const b64ToUint8=s=>{const pad='='.repeat((4-s.length%4)%4);const base64=(s+pad).replace(/-/g,'+').replace(/_/g,'/');const raw=atob(base64);return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)))};
+ const status=(text,kind='off',detail='')=>{const pill=el('pushStatusPill'),txt=el('pushStatusText');if(pill){pill.textContent=text;pill.classList.remove('push-ready','push-blocked','push-off');pill.classList.add('push-'+kind)}if(txt&&detail)txt.textContent=detail};
+ async function registerSW(){return navigator.serviceWorker.register('./sw.js?v=2610',{scope:'./'}).then(()=>navigator.serviceWorker.ready)}
+ async function invoke(body){const db=client();if(!db)throw new Error('Supabase chưa sẵn sàng.');const {data,error}=await db.functions.invoke('nexora-web-push',{body});if(error)throw error;if(data?.error)throw new Error(data.error);return data}
+ async function currentUser(){const db=client();if(!db)return null;const {data,error}=await db.auth.getUser();if(error)throw error;return data?.user||null}
+ async function saveSubscription(sub,user){const json=sub.toJSON();await invoke({action:'subscribe',subscription:{endpoint:sub.endpoint,keys:{p256dh:json.keys?.p256dh||'',auth:json.keys?.auth||''}},userAgent:navigator.userAgent})}
+ async function syncUI(){
+   const enable=el('enablePushBtn'),disable=el('disablePushBtn'),test=el('testPushBtn'),ios=el('pushIosNote');if(!enable&&!disable&&!test)return;
+   if(ios)ios.hidden=!(isIOS()&&!isStandalone());
+   if(!supported()){status('KHÔNG HỖ TRỢ','blocked','Trình duyệt/thiết bị này chưa hỗ trợ Web Push.');if(enable)enable.disabled=true;return}
+   if(isIOS()&&!isStandalone()){status('CẦN CÀI WEB APP','off','Trên iPhone/iPad, hãy thêm Nexora vào Màn hình chính rồi mở từ biểu tượng Nexora để bật Web Push.');if(enable)enable.disabled=true;if(disable)disable.hidden=true;if(test)test.hidden=true;return}
+   const reg=await registerSW();const sub=await reg.pushManager.getSubscription();
+   if(Notification.permission==='denied'){status('ĐÃ CHẶN','blocked','Quyền thông báo đang bị chặn trong cài đặt trình duyệt.');if(enable)enable.disabled=true;if(disable)disable.hidden=!sub;if(test)test.hidden=true;return}
+   if(sub){status('ĐÃ BẬT','ready','Web Push đang hoạt động trên thiết bị này. Bạn có thể gửi thử một thông báo.');if(enable){enable.hidden=true;enable.disabled=false}if(disable)disable.hidden=false;if(test)test.hidden=false;try{const user=await currentUser();if(user)await saveSubscription(sub,user)}catch(e){console.warn('Push sync:',e)} }
+   else{status('CHƯA BẬT','off','Bật Web Push để nhận thông báo khi Nexora có cập nhật quan trọng cho tài khoản của bạn.');if(enable){enable.hidden=false;enable.disabled=false}if(disable)disable.hidden=true;if(test)test.hidden=true}
+ }
+ async function enable(){
+   const btn=el('enablePushBtn');if(btn)btn.disabled=true;
+   try{
+     if(isIOS()&&!isStandalone())throw new Error('Trên iPhone, hãy Add to Home Screen rồi mở Nexora từ biểu tượng trên màn hình chính.');
+     const permission=await Notification.requestPermission();if(permission!=='granted')throw new Error('Bạn chưa cho phép Nexora gửi thông báo.');
+     const user=await currentUser();if(!user)throw new Error('Bạn cần đăng nhập lại.');
+     const cfg=await invoke({action:'config'});if(!cfg?.publicKey)throw new Error('Web Push chưa được cấu hình VAPID trên Supabase.');
+     const reg=await registerSW();let sub=await reg.pushManager.getSubscription();if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToUint8(cfg.publicKey)});
+     await saveSubscription(sub,user);await syncUI();
+   }catch(e){alert(e?.message||'Không thể bật Web Push.');await syncUI().catch(()=>{})}finally{if(btn)btn.disabled=false}
+ }
+ async function disable(){
+   const btn=el('disablePushBtn');if(btn)btn.disabled=true;
+   try{const reg=await registerSW();const sub=await reg.pushManager.getSubscription();if(sub){await invoke({action:'unsubscribe',endpoint:sub.endpoint});await sub.unsubscribe()}await syncUI()}catch(e){alert(e?.message||'Không thể tắt Web Push.')}finally{if(btn)btn.disabled=false}
+ }
+ async function test(){const btn=el('testPushBtn');if(btn)btn.disabled=true;try{const out=await invoke({action:'test'});if(!out?.ok)throw new Error(out?.message||'Không gửi được thông báo thử.')}catch(e){alert(e?.message||'Không gửi được thông báo thử.')}finally{if(btn)btn.disabled=false}}
+ async function adminNotify(userId,title,body,url='./dashboard.html',tag='nexora-update'){
+   if(!userId)return;try{await invoke({action:'admin_send',userId,title,body,url,tag})}catch(e){console.warn('Nexora Web Push admin send:',e)}
+ }
+ window.NEXORA_PUSH={adminNotify,syncUI};
+ document.addEventListener('DOMContentLoaded',()=>{el('enablePushBtn')?.addEventListener('click',enable);el('disablePushBtn')?.addEventListener('click',disable);el('testPushBtn')?.addEventListener('click',test);if(el('pushCenterPanel'))syncUI().catch(e=>{console.warn('Push init:',e);status('CHƯA CẤU HÌNH','off','Web Push chưa sẵn sàng. Hãy hoàn tất SQL và Edge Function v2.6.10.')})});
 })();

@@ -834,3 +834,14 @@ html[data-season-rank="master"]{--rank-accent:#ff4b23;--rank-deep:#8b130f}
     font-size:26px!important;
   }
 }
+
+/* =========================================================
+   Nexora v2.6.10 — Real Web Push
+   ========================================================= */
+.push-center-panel{border-color:rgba(255,176,52,.24);background:linear-gradient(145deg,rgba(255,147,32,.08),rgba(20,24,32,.92))}
+.push-center-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
+.push-center-panel .pill.push-ready{color:#9dffbd;border-color:rgba(82,220,127,.34);background:rgba(41,160,83,.12)}
+.push-center-panel .pill.push-blocked{color:#ff9aa7;border-color:rgba(255,87,105,.35);background:rgba(180,35,52,.13)}
+.push-center-panel .pill.push-off{color:#ffd58c;border-color:rgba(255,175,54,.34);background:rgba(179,107,25,.12)}
+.push-ios-note{margin-top:12px;padding:11px 12px;border:1px solid rgba(74,181,255,.22);border-radius:12px;background:rgba(40,128,198,.09);color:#bfe6ff;font-size:.86rem;line-height:1.5}
+@media(max-width:520px){.push-center-actions>*{flex:1 1 100%}.push-center-panel .section-head{align-items:flex-start}.push-center-panel .pill{font-size:.66rem}}

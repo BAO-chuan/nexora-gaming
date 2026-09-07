@@ -1,0 +1,42 @@
+NEXORA GAMING v2.6.10 — REAL WEB PUSH
+=====================================
+
+1) GitHub Pages
+Upload/copy the changed files from this package to your Nexora repository.
+Important new files: sw.js and manifest.webmanifest.
+
+2) Supabase SQL Editor
+Run:
+Nexora-Gaming-v2.6.10-Real-Web-Push.sql
+
+3) Supabase Edge Function
+Create/deploy a function named exactly:
+nexora-web-push
+Use:
+supabase/functions/nexora-web-push/index.ts
+
+4) Edge Function secrets
+Set these secrets in Supabase:
+VAPID_PUBLIC_KEY=<your VAPID public key>
+VAPID_PRIVATE_KEY=<your VAPID private key>
+VAPID_SUBJECT=mailto:your-real-email@example.com
+
+DO NOT put the VAPID private key in GitHub, app.js, config.js, HTML, or any public file.
+
+5) Test
+- Log in to Nexora.
+- Dashboard > "Thông báo trên điện thoại" > "Bật thông báo".
+- Allow notifications.
+- Tap "Gửi thử thông báo".
+
+IPHONE / IPAD
+- Open Nexora in Safari.
+- Share > Add to Home Screen.
+- Open Nexora from the Home Screen icon.
+- Log in and tap "Bật thông báo".
+
+Automatic push hooks included:
+- Challenge Proof approved/rejected.
+- Reward redemption processing/fulfilled/rejected.
+- Admin replies to Support.
+- Support ticket resolved/closed.
