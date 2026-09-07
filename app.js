@@ -65,11 +65,44 @@ async function loadRewards(user){const list=$('streakRewardList'),claim=$('claim
 async function loadActivity(){const box=$('activityList');if(!box)return;const {data,error}=await db.rpc('nexora_my_activity_history',{p_limit:20});if(error){box.textContent='Hãy chạy SQL v1.4 trước.';return}const icons={login:'☀️',streak_reward:'🔥',daily:'🎯',challenge:'🎲',event:'🎁'};box.innerHTML=(data||[]).map(a=>`<div class="activity-item"><span class="activity-icon">${icons[a.activity_type]||'⚡'}</span><div><b>${esc(a.title)}</b><small>${esc(a.detail||'')} • ${fmtDate(a.created_at)}</small></div><strong class="activity-points ${Number(a.points||0)>0?'gain':''}">${Number(a.points||0)>0?'+'+a.points:''}</strong></div>`).join('')||'<div class="empty-state">Chưa có hoạt động. Hãy điểm danh hoặc hoàn thành Challenge đầu tiên.</div>'}
 async function loadDaily(user){
  const box=$('dailyList');if(!box)return;
- const [tasks,summary,badges]=await Promise.all([db.rpc('nexora_daily_challenges'),db.rpc('nexora_my_daily_summary'),db.rpc('nexora_my_achievements')]);
+ const [tasks,summary,badges,proofs]=await Promise.all([
+   db.rpc('nexora_daily_challenges'),
+   db.rpc('nexora_my_daily_summary'),
+   db.rpc('nexora_my_achievements'),
+   db.rpc('nexora_my_challenge_proofs_v263')
+ ]);
  if(tasks.error){box.textContent='Hãy chạy SQL v1.3 trước.';return}
+ const proofRows=proofs.error?[]:(proofs.data||[]);
+ const latestProof=new Map();
+ proofRows.filter(p=>p.challenge_type==='daily').forEach(p=>{
+   const key=String(p.challenge_id||'');
+   if(!key)return;
+   const prev=latestProof.get(key);
+   if(!prev || new Date(p.created_at||0)>new Date(prev.created_at||0))latestProof.set(key,p);
+ });
  const sum=summary.data||{};$('dailyStreak').textContent=sum.streak||0;$('dailyDone').textContent=(sum.today_done||0)+'/3';$('weeklyPoints').textContent=sum.weekly_points||0;$('weeklyRank').textContent=sum.weekly_rank?'#'+sum.weekly_rank:'—';
- box.innerHTML=(tasks.data||[]).map(x=>`<article class="daily-card ${x.completed?'done':''}"><span class="difficulty ${x.difficulty}">${x.difficulty==='easy'?'DỄ':x.difficulty==='medium'?'VỪA':'KHÓ'}</span><h3>${esc(x.title)}</h3><p>${esc(x.description)}</p><b>+${x.points} điểm</b><br><button class="${x.completed?'ghost':'btn'} daily-complete" data-id="${x.id}" ${x.completed?'disabled':''}>${x.completed?'✓ Đã hoàn thành':'Hoàn thành'}</button></article>`).join('')||'Chưa đủ Challenge hoạt động.';
- document.querySelectorAll('.daily-complete').forEach(b=>b.onclick=()=>{const task=(tasks.data||[]).find(x=>x.id===b.dataset.id);if(task)showProofForm('daily',task.id,task.title,task.points,user)});
+ box.innerHTML=(tasks.data||[]).map(x=>{
+   const proof=latestProof.get(String(x.id));
+   const pending=!x.completed&&proof?.status==='pending';
+   const rejected=!x.completed&&proof?.status==='rejected';
+   const btnText=x.completed?'✓ Đã hoàn thành':pending?'⏳ Chờ Admin duyệt':rejected?'🔁 Gửi lại bằng chứng':'🛡️ Gửi bằng chứng';
+   const disabled=x.completed||pending;
+   return `<article class="daily-card ${x.completed?'done':''}">
+     <span class="difficulty ${x.difficulty}">${x.difficulty==='easy'?'DỄ':x.difficulty==='medium'?'VỪA':'KHÓ'}</span>
+     <h3>${esc(x.title)}</h3>
+     <p>${esc(x.description)}</p>
+     <b>+${x.points} điểm</b><br>
+     <button class="${disabled?'ghost':'btn'} daily-complete" data-id="${x.id}" ${disabled?'disabled':''}>${btnText}</button>
+     ${pending?'<small class="note">Bằng chứng đã gửi. Hãy chờ Admin xác nhận.</small>':''}
+     ${rejected?`<small class="note">Bằng chứng trước đã bị từ chối${proof?.admin_note?`: ${esc(proof.admin_note)}`:'.'}</small>`:''}
+   </article>`;
+ }).join('')||'Chưa đủ Challenge hoạt động.';
+ document.querySelectorAll('.daily-complete:not([disabled])').forEach(b=>b.onclick=()=>{
+   const task=(tasks.data||[]).find(x=>String(x.id)===String(b.dataset.id));
+   if(!task)return;
+   msg('dashMsg','Hãy gửi bằng chứng để Admin xác nhận nhiệm vụ này.');
+   openProofSubmission('daily',task.id,task.title,task.points,user);
+ });
  const ab=$('achievementList');if(ab)ab.innerHTML=(badges.data||[]).map(a=>`<div class="badge ${a.unlocked?'':'locked'}"><b>${a.icon} ${esc(a.title)}</b><small>${esc(a.description)}</small><br><span>${a.unlocked?'✓ Đã mở khóa':'🔒 Chưa mở'}</span></div>`).join('');
 }
 
@@ -211,7 +244,7 @@ function proofContentType(file){if(file?.type)return file.type.toLowerCase();ret
 async function proofHref(x){if(x.proof_path){const {data,error}=await db.storage.from(PROOF_BUCKET).createSignedUrl(x.proof_path,3600);if(!error&&data?.signedUrl)return data.signedUrl}return x.proof_url||''}
 function proofMedia(url,mime=''){if(!url)return'<span class="note">Không mở được tệp bằng chứng.</span>';const m=(mime||'').toLowerCase(),u=esc(url);if(m.startsWith('image/'))return`<a href="${u}" target="_blank" rel="noopener"><img class="proof-preview" src="${u}" alt="Ảnh bằng chứng" loading="lazy"></a>`;if(m.startsWith('video/'))return`<video class="proof-video" src="${u}" controls preload="metadata" playsinline></video><a class="proof-link" href="${u}" target="_blank" rel="noopener">Mở video ↗</a>`;return`<a class="proof-link" href="${u}" target="_blank" rel="noopener">Mở bằng chứng ↗</a>`}
 function setMediaProgress(pct,text){const wrap=$('mediaUrlProgress'),bar=$('mediaUrlProgressBar'),label=$('mediaUrlProgressText');if(wrap)wrap.classList.remove('hidden');if(bar)bar.style.width=Math.max(0,Math.min(100,pct))+'%';if(label)label.textContent=text||''}
-async function setupMediaUrlTool(user){const fileInput=$('mediaUrlFile'),uploadBtn=$('mediaUrlUploadBtn'),info=$('mediaUrlFileInfo'),result=$('mediaUrlResult'),output=$('mediaUrlOutput');if(!fileInput||!uploadBtn||!user)return;fileInput.onchange=()=>{const file=fileInput.files?.[0];if(!file){info.textContent='Ảnh tối đa 12 MB • Video tối đa 50 MB';info.classList.remove('bad');return}const check=proofFileOk(file);info.textContent=check.ok?`${file.name} • ${(file.size/1024/1024).toFixed(1)} MB`:check.message;info.classList.toggle('bad',!check.ok)};uploadBtn.onclick=async()=>{const file=fileInput.files?.[0];if(!file)return msg('dashMsg','Hãy chọn ảnh hoặc video trước.',true);const check=proofFileOk(file);if(!check.ok)return msg('dashMsg',check.message,true);uploadBtn.disabled=true;uploadBtn.textContent='Đang tải lên...';result?.classList.add('hidden');setMediaProgress(15,'Đang chuẩn bị file...');try{const day=new Date().toISOString().slice(0,10),rnd=(crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2)+Date.now()),path=`${user.id}/${day}/${rnd}.${proofExt(file)}`,mime=proofContentType(file);setMediaProgress(40,'Đang tải file lên Nexora...');const {error}=await db.storage.from(MEDIA_URL_BUCKET).upload(path,file,{cacheControl:'31536000',upsert:false,contentType:mime});if(error)throw error;setMediaProgress(85,'Đang tạo URL công khai...');const {data}=db.storage.from(MEDIA_URL_BUCKET).getPublicUrl(path);const url=data?.publicUrl||'';if(!url)throw new Error('Không tạo được URL.');if(output)output.value=url;if($('mediaUrlOpenBtn'))$('mediaUrlOpenBtn').href=url;result?.classList.remove('hidden');setMediaProgress(100,'Đã tạo URL ✓');window.sessionStorage.setItem('nexora_last_media_url',url);msg('dashMsg','Đã tạo URL ảnh/video ✓')}catch(err){setMediaProgress(0,'Tải lên thất bại.');msg('dashMsg',err?.message||'Không thể tạo URL.',true)}finally{uploadBtn.disabled=false;uploadBtn.textContent='☁️ Tải lên & tạo URL'}};if($('mediaUrlCopyBtn'))$('mediaUrlCopyBtn').onclick=async()=>{const url=output?.value||'';if(!url)return;try{await navigator.clipboard.writeText(url);msg('dashMsg','Đã sao chép URL ✓')}catch{output.select();document.execCommand('copy');msg('dashMsg','Đã sao chép URL ✓')}};if($('mediaUrlUseBtn'))$('mediaUrlUseBtn').onclick=()=>{const url=output?.value||'';if(!url)return;window.sessionStorage.setItem('nexora_last_media_url',url);$('proofList')?.scrollIntoView({behavior:'smooth',block:'center'});msg('dashMsg','Đã lưu URL. Hãy chọn Challenge rồi bấm “Đã hoàn thành”; URL sẽ được điền sẵn.')}}
+async function setupMediaUrlTool(user){const fileInput=$('mediaUrlFile'),uploadBtn=$('mediaUrlUploadBtn'),info=$('mediaUrlFileInfo'),result=$('mediaUrlResult'),output=$('mediaUrlOutput');if(!fileInput||!uploadBtn||!user)return;fileInput.onchange=()=>{const file=fileInput.files?.[0];if(!file){info.textContent='Ảnh tối đa 12 MB • Video tối đa 50 MB';info.classList.remove('bad');return}const check=proofFileOk(file);info.textContent=check.ok?`${file.name} • ${(file.size/1024/1024).toFixed(1)} MB`:check.message;info.classList.toggle('bad',!check.ok)};uploadBtn.onclick=async()=>{const file=fileInput.files?.[0];if(!file)return msg('dashMsg','Hãy chọn ảnh hoặc video trước.',true);const check=proofFileOk(file);if(!check.ok)return msg('dashMsg',check.message,true);uploadBtn.disabled=true;uploadBtn.textContent='Đang tải lên...';result?.classList.add('hidden');setMediaProgress(15,'Đang chuẩn bị file...');try{const day=new Date().toISOString().slice(0,10),rnd=(crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2)+Date.now()),path=`${user.id}/${day}/${rnd}.${proofExt(file)}`,mime=proofContentType(file);setMediaProgress(40,'Đang tải file lên Nexora...');const {error}=await db.storage.from(MEDIA_URL_BUCKET).upload(path,file,{cacheControl:'31536000',upsert:false,contentType:mime});if(error)throw error;setMediaProgress(85,'Đang tạo URL công khai...');const {data}=db.storage.from(MEDIA_URL_BUCKET).getPublicUrl(path);const url=data?.publicUrl||'';if(!url)throw new Error('Không tạo được URL.');if(output)output.value=url;if($('mediaUrlOpenBtn'))$('mediaUrlOpenBtn').href=url;result?.classList.remove('hidden');setMediaProgress(100,'Đã tạo URL ✓');window.sessionStorage.setItem('nexora_last_media_url',url);msg('dashMsg','Đã tạo URL ảnh/video ✓')}catch(err){setMediaProgress(0,'Tải lên thất bại.');msg('dashMsg',err?.message||'Không thể tạo URL.',true)}finally{uploadBtn.disabled=false;uploadBtn.textContent='☁️ Tải lên & tạo URL'}};if($('mediaUrlCopyBtn'))$('mediaUrlCopyBtn').onclick=async()=>{const url=output?.value||'';if(!url)return;try{await navigator.clipboard.writeText(url);msg('dashMsg','Đã sao chép URL ✓')}catch{output.select();document.execCommand('copy');msg('dashMsg','Đã sao chép URL ✓')}};if($('mediaUrlUseBtn'))$('mediaUrlUseBtn').onclick=()=>{const url=output?.value||'';if(!url)return;window.sessionStorage.setItem('nexora_last_media_url',url);$('proofList')?.scrollIntoView({behavior:'smooth',block:'center'});msg('dashMsg','Đã lưu URL. Hãy chọn Challenge rồi bấm “Gửi bằng chứng”; URL sẽ được điền sẵn.')}}
 function openProofSubmission(type,id,title,points,user){
   // v2.4.4: từ Challenge chuyển thẳng sang Bằng chứng → Proof Center.
   try{
@@ -231,7 +264,7 @@ function openProofSubmission(type,id,title,points,user){
         input.scrollIntoView({behavior:'smooth',block:'center'});
         try{input.focus({preventScroll:true})}catch{input.focus()}
       }
-      msg('dashMsg','✓ Đã hoàn thành Challenge. Hãy dán URL bằng chứng và gửi Admin duyệt.');
+      msg('dashMsg','Hãy dán URL bằng chứng và gửi Admin duyệt. Chỉ được tính hoàn thành sau khi Admin xác nhận.');
     },80);
   },80);
 }
