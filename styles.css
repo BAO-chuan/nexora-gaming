@@ -445,3 +445,55 @@ html[data-season-rank="master"]{--rank-accent:#ff4b23;--rank-deep:#8b130f}
 .nx-auth-options{display:flex;justify-content:space-between;align-items:center}.nx-forgot{border:0;background:transparent;color:#ff9a3d;font-weight:850;padding:8px 0}.nx-login-btn{width:100%;min-height:58px;border-radius:17px!important;font-weight:950!important;letter-spacing:1.4px!important;background:linear-gradient(100deg,#ff9a16,#ff651f)!important;box-shadow:0 12px 30px rgba(255,105,22,.20)}.nx-login-btn span{margin-left:10px;font-size:20px}
 .nx-auth-trust{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:28px;padding-top:22px;border-top:1px solid rgba(148,173,205,.16);color:#9fb0c8;text-align:center;font-size:12px}.nx-auth-safety{text-align:center;color:#71839b;font-size:12px;line-height:1.5;margin:18px 0 0}.nx-auth-footer{margin-top:25px;color:#65758b;font-size:11px;font-weight:800;letter-spacing:2px;text-align:center}
 @media(max-width:520px){.nx-auth-shell{justify-content:flex-start;padding-top:max(34px,env(safe-area-inset-top))}.nx-auth-brand{align-self:flex-start;margin:16px 8px 34px;font-size:29px}.nx-auth-card{border-radius:26px;padding:22px 18px}.nx-auth-heading h1{font-size:34px}.nx-auth-trust{font-size:10px}}
+
+
+/* Nexora v2.6.8.7 — User History Delete Everywhere */
+.user-history-delete-v2687{
+  flex:0 0 auto;
+  border-color:rgba(255,100,115,.35)!important;
+  color:#ff9aa7!important;
+  background:rgba(255,80,95,.04)!important;
+}
+.user-history-delete-v2687:hover{
+  border-color:#ff6b7a!important;
+  background:rgba(255,80,95,.10)!important;
+}
+.xp-history-item{
+  grid-template-columns:minmax(0,1fr) auto auto!important;
+  gap:10px;
+  align-items:center;
+}
+.activity-item{
+  grid-template-columns:40px minmax(0,1fr) auto auto!important;
+}
+.entry{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.entry>div{min-width:0;flex:1}
+.notification-item{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+}
+.notification-copy{min-width:0;flex:1}
+.notification-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:8px;
+}
+.redemption-row .user-history-delete-v2687{
+  margin-top:10px;
+}
+@media(max-width:640px){
+  .xp-history-item{grid-template-columns:minmax(0,1fr) auto!important}
+  .xp-history-item>strong{grid-column:2}
+  .xp-history-item>.user-history-delete-v2687{grid-column:1/-1;width:100%}
+  .activity-item{grid-template-columns:38px minmax(0,1fr) auto!important}
+  .activity-item>.user-history-delete-v2687{grid-column:2/-1;width:100%}
+  .entry{align-items:flex-start;flex-direction:column}
+  .entry>.user-history-delete-v2687{width:100%}
+}
