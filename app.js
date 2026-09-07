@@ -265,7 +265,7 @@ hydrateRankImages();authPage();dashboard();admin();adminEvents();adminProofs();p
     overview:[['profile','👤 Hồ sơ nhanh','.profile-panel'],['xp','⚡ Level & XP','.xp-system'],['activity','🕘 Gần đây','#activityList']],
     challenges:[['random','🎲 Random','.advanced-challenge'],['daily','🔥 Daily','#dailyList']],
     ranking:[['season','🏆 Rank mùa','.season-system'],['achievements','🏅 Huy hiệu','#achievementList'],['board','📊 BXH','#leaderboard']],
-    rewards:[['daily-reward','🎁 Điểm danh','.reward-hub'],['events','🎟️ Event','#eventList'],['entries','🎫 Lượt của tôi','#myEntries']],
+    rewards:[['daily-reward','🎁 Điểm danh','.reward-hub'],['reward-center','🛍️ Đổi thưởng','#rewardShopList'],['reward-history','🧾 Lịch sử đổi','#myRedemptionList'],['events','🎟️ Event','#eventList'],['entries','🎫 Lượt của tôi','#myEntries']],
     proof:[['media','🔗 Media → URL','#mediaUrlTool'],['proof-center','🛡️ Proof Center','#proofList']],
     profile:[['id-card','🪪 ID Card','#playerCard'],['public-profile','🌐 Public Profile','.public-profile-hub']],
     community:[['feed','🔥 Hoạt động','#communityFeedList'],['players','👥 Người chơi','#playerSearchResults'],['missions','⚡ Nhiệm vụ','#communityMissionList'],['notifications','🔔 Thông báo','#notificationList'],['clan','🛡️ Clan','#myClanBox'],['clan-board','🏆 BXH Clan','#clanLeaderboardList'],['tournaments','🎮 Giải đấu','#tournamentList']]
@@ -352,4 +352,86 @@ hydrateRankImages();authPage();dashboard();admin();adminEvents();adminProofs();p
   };new MutationObserver(enhance).observe(document.body,{childList:true,subtree:true});enhance();
  }
  document.addEventListener('DOMContentLoaded',init);
+})();
+
+
+// =========================================================
+// Nexora v2.6 — Reward Center
+// Diamond / game-card / cash reward requests. PTS is deducted atomically by RPC.
+// =========================================================
+(function initRewardCenterV26(){
+ const $r=id=>document.getElementById(id);
+ const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+ const db=()=>window.NEXORA_DB;
+ const call=async(name,args={})=>{const c=db();if(!c)throw new Error('Supabase chưa sẵn sàng');const {data,error}=await c.rpc(name,args);if(error)throw error;return data};
+ const statusText=s=>({pending:'⏳ Chờ duyệt',processing:'🛠️ Đang xử lý',fulfilled:'✅ Đã trao',rejected:'↩️ Từ chối / hoàn PTS'}[s]||s);
+ const typeText=t=>({diamond:'💎 Kim cương',game_card:'🎮 Thẻ game',cash:'💵 Tiền mặt'}[t]||t);
+ const notify=(text,bad=false)=>{const e=$r('dashMsg')||$r('adminMsg');if(e){e.textContent=text;e.style.color=bad?'#ff6b7a':'#20e6ff'}else alert(text)};
+
+ async function loadShop(){
+  const box=$r('rewardShopList'); if(!box)return;
+  try{
+   const rows=await call('nexora_reward_catalog');
+   const c=db(); const {data:{session}}=await c.auth.getSession();
+   if(session){const {data:p}=await c.from('nexora_profiles').select('points').eq('user_id',session.user.id).single(); if($r('rewardCurrentPoints'))$r('rewardCurrentPoints').textContent=p?.points??0}
+   box.innerHTML=(rows||[]).map(x=>`<article class="reward-shop-card">
+    <div class="reward-shop-icon">${x.reward_type==='diamond'?'💎':x.reward_type==='game_card'?'🎮':'💵'}</div>
+    <div class="reward-shop-body"><small>${typeText(x.reward_type)}</small><h3>${esc(x.title)}</h3><p>${esc(x.description||'')}</p>
+    <div class="reward-shop-meta"><b>${Number(x.points_cost).toLocaleString('vi-VN')} PTS</b><span>${x.stock===-1?'Còn quà':x.stock>0?`Còn ${x.stock}`:'Hết quà'}</span></div>
+    <button class="btn reward-redeem-btn" data-id="${x.id}" data-type="${x.reward_type}" data-title="${esc(x.title)}" ${x.stock===0?'disabled':''}>Đổi thưởng</button></div>
+   </article>`).join('')||'<div class="empty-state">Hiện chưa có phần thưởng.</div>';
+   document.querySelectorAll('.reward-redeem-btn').forEach(b=>b.onclick=()=>redeemPrompt(b));
+  }catch(e){box.textContent='Hãy chạy SQL v2.6. '+e.message}
+ }
+ async function redeemPrompt(b){
+  const t=b.dataset.type, title=b.dataset.title;
+  let data={};
+  if(t==='diamond'){
+   const uid=prompt(`Đổi ${title}\n\nNhập UID game nhận kim cương:`); if(!uid)return;
+   data={game_uid:uid.trim()};
+  }else if(t==='game_card'){
+   const provider=prompt(`Đổi ${title}\n\nNhập loại thẻ/nhà phát hành mong muốn (nếu áp dụng):`); if(provider===null)return;
+   data={provider:provider.trim()};
+  }else{
+   const bank=prompt(`Đổi ${title}\n\nNhập tên ngân hàng:`); if(!bank)return;
+   const account=prompt('Nhập số tài khoản nhận tiền:'); if(!account)return;
+   const holder=prompt('Nhập tên chủ tài khoản:'); if(!holder)return;
+   data={bank_name:bank.trim(),account_number:account.trim(),account_holder:holder.trim()};
+  }
+  if(!confirm(`Xác nhận gửi yêu cầu đổi "${title}"?\nPTS sẽ được trừ ngay và tự hoàn nếu Admin từ chối.`))return;
+  b.disabled=true;
+  try{
+   const out=await call('nexora_redeem_reward',{p_reward_id:b.dataset.id,p_recipient:data});
+   notify(out?.message||'Đã gửi yêu cầu đổi thưởng ✓',!out?.ok);
+   await loadShop(); await loadMine();
+   if(out?.points_left!=null){if($r('rewardCurrentPoints'))$r('rewardCurrentPoints').textContent=out.points_left;if($r('myPoints'))$r('myPoints').textContent=out.points_left}
+  }catch(e){notify(e.message,true);b.disabled=false}
+ }
+ async function loadMine(){
+  const box=$r('myRedemptionList');if(!box)return;
+  try{const rows=await call('nexora_my_redemptions',{p_limit:50});box.innerHTML=(rows||[]).map(x=>`<div class="redemption-row"><div><b>${esc(x.reward_title)}</b><small>${typeText(x.reward_type)} • ${Number(x.points_cost).toLocaleString('vi-VN')} PTS</small></div><span class="redemption-status ${esc(x.status)}">${statusText(x.status)}</span>${x.admin_note?`<p>${esc(x.admin_note)}</p>`:''}</div>`).join('')||'<div class="empty-state">Bạn chưa có yêu cầu đổi thưởng.</div>'}catch(e){box.textContent='Hãy chạy SQL v2.6. '+e.message}
+ }
+
+ async function adminRewards(){
+  if(!$r('adminRewardList'))return;
+  try{
+   const [rewards,reqs]=await Promise.all([call('nexora_admin_rewards',{p_limit:100}),call('nexora_admin_redemptions',{p_limit:100})]);
+   $r('adminRewardList').innerHTML=(rewards||[]).map(x=>`<div class="admin-v25-card"><b>${typeText(x.reward_type)} • ${esc(x.title)}</b><div class="admin-v25-meta"><span>${Number(x.points_cost).toLocaleString('vi-VN')} PTS</span><span>Kho: ${x.stock===-1?'∞':x.stock}</span><span>${x.is_active?'🟢 Đang bán':'⚫ Đã ẩn'}</span></div><div class="admin-v25-actions"><button class="ghost v26-toggle-reward" data-id="${x.id}" data-active="${x.is_active?'0':'1'}">${x.is_active?'Ẩn':'Hiện'}</button><button class="ghost admin-danger v26-delete-reward" data-id="${x.id}">Xóa</button></div></div>`).join('')||'Chưa có phần thưởng.';
+   $r('adminRedemptionList').innerHTML=(reqs||[]).map(x=>`<div class="admin-v25-card"><b>${esc(x.display_name||'Game thủ')} • ${esc(x.reward_title)}</b><div class="admin-v25-meta"><span>${Number(x.points_cost).toLocaleString('vi-VN')} PTS</span><span>${statusText(x.status)}</span><span>${new Date(x.created_at).toLocaleString('vi-VN')}</span></div><div class="admin-recipient-data">${esc(formatRecipient(x.reward_type,x.recipient_data))}</div><div class="admin-v25-actions">${x.status==='pending'?`<button class="ghost v26-status" data-id="${x.id}" data-status="processing">Đang xử lý</button><button class="ghost admin-danger v26-status" data-id="${x.id}" data-status="rejected">Từ chối + hoàn PTS</button>`:''}${x.status==='processing'?`<button class="btn v26-status" data-id="${x.id}" data-status="fulfilled">✓ Đã trao</button><button class="ghost admin-danger v26-status" data-id="${x.id}" data-status="rejected">Từ chối + hoàn PTS</button>`:''}</div></div>`).join('')||'Chưa có yêu cầu.';
+   bindAdmin();
+  }catch(e){$r('adminRewardList').textContent='Hãy chạy SQL v2.6. '+e.message}
+ }
+ const formatRecipient=(t,d={})=>t==='diamond'?`UID game: ${d.game_uid||'—'}`:t==='game_card'?`Loại thẻ: ${d.provider||'Theo phần thưởng'}`:`Ngân hàng: ${d.bank_name||'—'} • STK: ${d.account_number||'—'} • Chủ TK: ${d.account_holder||'—'}`;
+ function bindAdmin(){
+  document.querySelectorAll('.v26-toggle-reward').forEach(b=>b.onclick=async()=>{try{await call('nexora_admin_set_reward_active',{p_reward_id:b.dataset.id,p_active:b.dataset.active==='1'});await adminRewards()}catch(e){notify(e.message,true)}});
+  document.querySelectorAll('.v26-delete-reward').forEach(b=>b.onclick=async()=>{if(!confirm('Xóa phần thưởng này? Các yêu cầu cũ vẫn được giữ.'))return;try{await call('nexora_admin_delete_reward',{p_reward_id:b.dataset.id});await adminRewards()}catch(e){notify(e.message,true)}});
+  document.querySelectorAll('.v26-status').forEach(b=>b.onclick=async()=>{let note='';if(b.dataset.status==='rejected'){note=prompt('Lý do từ chối (PTS sẽ được hoàn tự động):')||'';if(!note.trim())return}else if(b.dataset.status==='fulfilled'){note=prompt('Ghi chú/mã giao dịch (không bắt buộc):')||''}try{const out=await call('nexora_admin_set_redemption_status',{p_redemption_id:b.dataset.id,p_status:b.dataset.status,p_note:note});notify(out?.message||'Đã cập nhật ✓');await adminRewards()}catch(e){notify(e.message,true)}});
+ }
+ document.addEventListener('DOMContentLoaded',()=>{
+  if($r('rewardShopList')){loadShop();loadMine();$r('refreshRewardCenter')?.addEventListener('click',()=>{loadShop();loadMine()})}
+  if($r('adminRewardList')){
+   adminRewards();$r('refreshAdminRewards')?.addEventListener('click',adminRewards);
+   $r('adminRewardForm')?.addEventListener('submit',async e=>{e.preventDefault();try{const out=await call('nexora_admin_create_reward',{p_title:$r('adminRewardTitle').value.trim(),p_reward_type:$r('adminRewardType').value,p_points_cost:+$r('adminRewardCost').value,p_stock:+$r('adminRewardStock').value,p_description:$r('adminRewardDescription').value.trim()});notify(out?.message||'Đã thêm phần thưởng ✓');e.target.reset();$r('adminRewardCost').value=1000;$r('adminRewardStock').value=-1;await adminRewards()}catch(err){notify(err.message,true)}})
+  }
+ });
 })();
