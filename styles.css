@@ -553,3 +553,151 @@ html[data-season-rank="master"]{--rank-accent:#ff4b23;--rank-deep:#8b130f}
 .admin-announcement-check{display:flex!important;align-items:center;gap:8px}.admin-announcement-check input{width:auto!important}
 .admin-announcement-list{display:grid;gap:10px}.admin-announcement-card small{display:block;color:#93a5ba;margin-top:6px;white-space:pre-line}
 @media(max-width:650px){.site-announcement-card{grid-template-columns:38px minmax(0,1fr);padding:12px}.site-announcement-icon{width:36px;height:36px}.site-announcement-meta time{width:100%;margin-left:0}.admin-announcement-form{grid-template-columns:1fr}.admin-announcement-wide{grid-column:auto}}
+
+
+/* =========================================================
+   Nexora v2.6.9.2 — Compact Hero + Lynkora Promo
+========================================================= */
+
+/* Compact the top welcome card on mobile and slightly on tablet */
+.dashboard-page .welcome{
+  min-height:auto;
+  padding:24px 28px!important;
+}
+.dashboard-page .welcome h1{
+  margin:10px 0 12px;
+  line-height:1.02;
+}
+.dashboard-page .welcome p{
+  margin:0;
+  max-width:720px;
+}
+.dashboard-page .welcome .ff-score{
+  min-width:150px;
+}
+
+/* Lynkora promo banner */
+.lynkora-promo-banner{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin:14px 0 18px;
+  padding:16px 18px;
+  border:1px solid rgba(255,145,34,.26);
+  border-radius:18px;
+  background:
+    radial-gradient(circle at 12% 50%,rgba(255,150,40,.10),transparent 34%),
+    linear-gradient(135deg,#0b1118,#080c12);
+  box-shadow:0 10px 34px rgba(0,0,0,.18);
+}
+.lynkora-promo-brand{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  min-width:0;
+}
+.lynkora-promo-icon{
+  width:48px;
+  height:48px;
+  flex:0 0 48px;
+  display:grid;
+  place-items:center;
+  border-radius:14px;
+  border:1px solid rgba(255,160,48,.34);
+  background:linear-gradient(145deg,rgba(255,153,37,.18),rgba(255,85,24,.08));
+  color:#ffb14a;
+  font-size:26px;
+  font-weight:1000;
+}
+.lynkora-promo-banner .eyebrow{
+  margin-bottom:3px;
+  color:#ff9c2e;
+}
+.lynkora-promo-banner h2{
+  margin:0;
+  font-size:19px;
+  line-height:1.15;
+}
+.lynkora-promo-banner p{
+  margin:5px 0 0;
+  color:#8fa3bb;
+  font-size:13px;
+}
+.lynkora-promo-cta{
+  flex:0 0 auto;
+  text-decoration:none;
+  white-space:nowrap;
+}
+
+@media(max-width:760px){
+  .dashboard-page .welcome{
+    padding:18px 20px!important;
+    gap:16px!important;
+  }
+  .dashboard-page .welcome h1{
+    font-size:clamp(34px,11vw,50px)!important;
+    margin:8px 0 10px!important;
+  }
+  .dashboard-page .welcome p{
+    font-size:15px!important;
+    line-height:1.45!important;
+  }
+  .dashboard-page .welcome .ff-score{
+    min-width:118px!important;
+    padding:10px 8px!important;
+  }
+  .dashboard-page .welcome .ff-score strong{
+    font-size:34px!important;
+  }
+  .dashboard-page .welcome .ff-score span,
+  .dashboard-page .welcome .ff-score small{
+    font-size:10px!important;
+  }
+
+  .lynkora-promo-banner{
+    padding:13px 14px;
+    border-radius:15px;
+    gap:10px;
+  }
+  .lynkora-promo-icon{
+    width:40px;
+    height:40px;
+    flex-basis:40px;
+    font-size:22px;
+  }
+  .lynkora-promo-banner .eyebrow{
+    font-size:10px;
+  }
+  .lynkora-promo-banner h2{
+    font-size:15px;
+  }
+  .lynkora-promo-banner p{
+    font-size:11px;
+    line-height:1.35;
+  }
+  .lynkora-promo-cta{
+    padding:10px 12px!important;
+    font-size:11px!important;
+  }
+}
+
+@media(max-width:560px){
+  .dashboard-page .welcome{
+    padding:16px 18px!important;
+  }
+  .dashboard-page .welcome h1{
+    font-size:42px!important;
+  }
+  .lynkora-promo-banner{
+    display:grid;
+    grid-template-columns:1fr auto;
+    align-items:center;
+  }
+  .lynkora-promo-brand{
+    gap:10px;
+  }
+  .lynkora-promo-banner p{
+    display:none;
+  }
+}
