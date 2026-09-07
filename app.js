@@ -786,23 +786,46 @@ document.addEventListener('DOMContentLoaded',initReferralCenterV2688);
 // Nexora v2.6.9 — Public Site Announcements
 // =========================================================
 async function loadSiteAnnouncementsV269(){
- const box=$('siteAnnouncementList');if(!box)return;
- const {data,error}=await db.rpc('nexora_public_announcements_v269',{p_limit:5});
- if(error){box.innerHTML=`<div class="empty-state">Không tải được thông báo.<br><small>${esc(error.message||'')}</small></div>`;return}
- const icon=t=>({update:'🆕',event:'🎟️',tournament:'🏆',system:'⚙️'}[t]||'📢');
- const label=t=>({update:'CẬP NHẬT',event:'EVENT',tournament:'GIẢI ĐẤU',system:'HỆ THỐNG'}[t]||'THÔNG BÁO');
- box.innerHTML=(data||[]).map(x=>`<article class="site-announcement-card type-${esc(x.type)} ${x.is_pinned?'is-pinned':''}">
-   <div class="site-announcement-icon">${icon(x.type)}</div>
-   <div class="site-announcement-body">
-     <div class="site-announcement-meta"><span>${label(x.type)}</span>${x.is_pinned?'<b>📌 GHIM</b>':''}${x.is_new?'<em>MỚI</em>':''}<time>${fmtDate(x.published_at||x.created_at)}</time></div>
-     <h3>${esc(x.title)}</h3>
-     <p>${esc(x.content)}</p>
-     ${x.link_url?`<a class="ghost small site-announcement-link" href="${esc(x.link_url)}">Mở thông báo →</a>`:''}
-   </div>
- </article>`).join('')||'<div class="empty-state">Hiện chưa có thông báo mới từ Nexora.</div>';
+ // v2.6.9.1 — Announcement Scope Hotfix
+ // This block is outside the main IIFE, so use public globals instead of private `$`, `db`, `esc`, `fmtDate`.
+ const el=id=>document.getElementById(id);
+ const box=el('siteAnnouncementList');
+ if(!box)return;
+
+ const client=window.NEXORA_DB;
+ const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const dateText=v=>{try{return new Date(v).toLocaleString('vi-VN')}catch{return '—'}};
+
+ if(!client){
+   box.innerHTML='<div class="empty-state">Supabase chưa sẵn sàng. Hãy tải lại trang.</div>';
+   return;
+ }
+
+ try{
+   const {data,error}=await client.rpc('nexora_public_announcements_v269',{p_limit:5});
+   if(error)throw error;
+
+   const icon=t=>({update:'🆕',event:'🎟️',tournament:'🏆',system:'⚙️'}[t]||'📢');
+   const label=t=>({update:'CẬP NHẬT',event:'EVENT',tournament:'GIẢI ĐẤU',system:'HỆ THỐNG'}[t]||'THÔNG BÁO');
+
+   box.innerHTML=(data||[]).map(x=>`<article class="site-announcement-card type-${safe(x.type)} ${x.is_pinned?'is-pinned':''}">
+     <div class="site-announcement-icon">${icon(x.type)}</div>
+     <div class="site-announcement-body">
+       <div class="site-announcement-meta"><span>${label(x.type)}</span>${x.is_pinned?'<b>📌 GHIM</b>':''}${x.is_new?'<em>MỚI</em>':''}<time>${dateText(x.published_at||x.created_at)}</time></div>
+       <h3>${safe(x.title)}</h3>
+       <p>${safe(x.content)}</p>
+       ${x.link_url?`<a class="ghost small site-announcement-link" href="${safe(x.link_url)}">Mở thông báo →</a>`:''}
+     </div>
+   </article>`).join('')||'<div class="empty-state">Hiện chưa có thông báo mới từ Nexora.</div>';
+ }catch(e){
+   console.warn('Site announcements v2691:',e);
+   box.innerHTML=`<div class="empty-state">Không tải được thông báo.<br><small>${safe(e?.message||'Lỗi không xác định')}</small></div>`;
+ }
 }
+
 function initSiteAnnouncementsV269(){
- const b=$('refreshSiteAnnouncements');if(b)b.onclick=loadSiteAnnouncementsV269;
+ const b=document.getElementById('refreshSiteAnnouncements');
+ if(b)b.onclick=loadSiteAnnouncementsV269;
 }
 document.addEventListener('DOMContentLoaded',initSiteAnnouncementsV269);
 
