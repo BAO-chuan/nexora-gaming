@@ -497,3 +497,36 @@ html[data-season-rank="master"]{--rank-accent:#ff4b23;--rank-deep:#8b130f}
   .entry{align-items:flex-start;flex-direction:column}
   .entry>.user-history-delete-v2687{width:100%}
 }
+
+
+/* Nexora v2.6.8.8 — Referral System */
+.referral-center{border-color:rgba(255,145,34,.28)}
+.referral-hero{display:grid;grid-template-columns:minmax(220px,.75fr) minmax(0,1.25fr);gap:14px;margin:18px 0}
+.referral-code-card,.referral-link-card{padding:18px;border:1px solid rgba(255,145,34,.24);border-radius:18px;background:linear-gradient(145deg,rgba(255,132,25,.08),rgba(6,15,27,.92))}
+.referral-code-card{display:flex;flex-direction:column;justify-content:center;text-align:center;min-height:150px}
+.referral-code-card>span{color:#99a9bd;font-size:11px;font-weight:900;letter-spacing:1.5px}
+.referral-code-card strong{font-size:30px;letter-spacing:3px;color:#ffad45;margin:10px 0;text-shadow:0 0 20px rgba(255,145,34,.22)}
+.referral-code-card small{color:#9db0c7}
+.referral-link-card label{display:grid;gap:8px;font-weight:800;color:#b7c5d7}
+.referral-link-card input{font-size:14px}
+.referral-actions{display:flex;gap:10px;margin-top:12px}.referral-actions>*{flex:1}
+.referral-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}
+.referral-stats>div{padding:14px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:#07111d;text-align:center}
+.referral-stats span{display:block;color:#8093aa;font-size:12px}.referral-stats strong{display:block;font-size:23px;margin-top:5px}
+.referral-progress{padding:14px;border:1px solid rgba(61,178,255,.16);border-radius:14px;background:rgba(6,17,30,.7)}
+.referral-progress>div:first-child{display:flex;justify-content:space-between;gap:10px;margin-bottom:9px;color:#9eb0c5}
+.referral-progress .progress-track i{background:linear-gradient(90deg,#ff8b26,#ffd34e)}
+.referral-rules{display:grid;gap:7px;margin:16px 0;padding:15px;border-radius:15px;background:rgba(255,145,34,.055);border:1px dashed rgba(255,145,34,.25);color:#9fb1c7}
+.referral-rules b{color:#ffd08a}.referral-history-head{margin-top:22px}
+.referral-history-list{display:grid;gap:10px}
+.referral-history-item{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:14px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:#08121f}
+.referral-friend small{display:block;color:#7f92aa;margin-top:4px}.referral-history-status{text-align:right}.referral-history-status strong{display:block;color:#ffd34e;margin-top:5px}
+.referral-status{font-size:12px;font-weight:850}.referral-status.rewarded{color:#61e6a5}.referral-status.pending{color:#ffd06a}.referral-status.limit_reached{color:#ff9b83}
+.auth-referral-banner{padding:12px 14px;border:1px solid rgba(255,145,34,.30);border-radius:13px;background:rgba(255,145,34,.07);color:#ffbe73;line-height:1.45}
+.auth-referral-banner small{display:block;color:#91a5bd;margin-top:4px}
+.referral-admin-stats{margin:14px 0}
+@media(max-width:720px){
+ .referral-hero{grid-template-columns:1fr}.referral-stats{grid-template-columns:1fr 1fr}
+ .referral-history-item{grid-template-columns:1fr}.referral-history-status{text-align:left}
+ .referral-history-item>.user-history-delete-v2687{width:100%}
+}
