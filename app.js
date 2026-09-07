@@ -101,3 +101,37 @@ async function publicProfile(){if(!$('publicProfileView'))return;const code=new 
 
 authPage();dashboard();admin();adminEvents();adminProofs();publicProfile();
 })();
+
+// =========================================================
+// Nexora v2.1.1 — Compact Dashboard Categories
+// =========================================================
+(function initDashboardCategories(){
+  const tabs=document.getElementById('dashboardTabs');
+  if(!tabs)return;
+  const notes={
+    overview:'Thông tin tài khoản, Level, XP và hoạt động gần đây.',
+    challenges:'Random Challenge, Daily Challenge và các nhiệm vụ hôm nay.',
+    ranking:'Rank mùa, huy hiệu và các bảng xếp hạng.',
+    rewards:'Điểm danh, mốc Streak, Event và lượt tham gia.',
+    proof:'Công cụ Media → URL và trung tâm gửi bằng chứng Challenge.',
+    profile:'Player Card, hồ sơ công khai và Share Card.'
+  };
+  const buttons=[...tabs.querySelectorAll('[data-dashboard-tab]')];
+  const sections=[...document.querySelectorAll('[data-dash-category]')];
+  const note=document.getElementById('dashboardTabNote');
+  function showCategory(category,scroll=false){
+    buttons.forEach(btn=>btn.classList.toggle('active',btn.dataset.dashboardTab===category));
+    sections.forEach(sec=>sec.classList.toggle('dashboard-category-hidden',sec.dataset.dashCategory!==category));
+    if(note)note.textContent=notes[category]||'';
+    try{sessionStorage.setItem('nexora_dashboard_category',category)}catch{}
+    if(scroll){
+      const first=sections.find(sec=>sec.dataset.dashCategory===category);
+      if(first)first.scrollIntoView({behavior:'smooth',block:'start'});
+    }
+  }
+  buttons.forEach(btn=>btn.addEventListener('click',()=>showCategory(btn.dataset.dashboardTab,true)));
+  let saved='overview';
+  try{saved=sessionStorage.getItem('nexora_dashboard_category')||'overview'}catch{}
+  if(!notes[saved])saved='overview';
+  showCategory(saved,false);
+})();
