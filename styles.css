@@ -355,3 +355,7 @@ html[data-season-rank="master"]{--rank-accent:#ff4b23;--rank-deep:#8b130f}
 [data-dash-module]{scroll-margin-top:155px}
 @media(min-width:980px){.dashboard-module-nav{margin-left:0;top:84px}}
 @media(max-width:979px){.dashboard-module-nav{top:74px;margin-left:0;margin-right:0;padding:12px}.module-tab{min-height:44px;padding:10px 12px;font-size:.88rem}[data-dash-module]{scroll-margin-top:140px}}
+
+
+/* v2.4.3 — Random cooldown countdown */
+.random-cooldown-status{margin:14px 0 0;padding:14px 16px;border:1px solid rgba(255,138,24,.45);border-radius:14px;background:linear-gradient(135deg,rgba(255,138,24,.12),rgba(255,77,50,.05));display:grid;gap:5px;color:#eaf1fb}.random-cooldown-status b{color:#ffd04a;font-size:15px}.random-cooldown-status span{color:#dce6f2}.random-cooldown-status strong{color:#ff8a18;font-variant-numeric:tabular-nums}.random-cooldown-status small{color:#8fa1bb}.random-cooldown-status.hidden{display:none!important}
