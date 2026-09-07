@@ -11,7 +11,7 @@ $('loginTab').onclick=()=>{location.hash='login';toggleAuth()};$('registerTab').
 async function requireUser(){const s=await session();if(!s){location.href='auth.html';return null}return s.user}
 async function logoutSetup(){if($('logoutBtn'))$('logoutBtn').onclick=async()=>{await db.auth.signOut();location.href='index.html'}}
 let currentChallenge=null,myProfile=null,randomAccepted=false,myXpProgress=null,randomTimer=null,randomExpiresAt=null,currentSeasonData={rank:'Bronze',points:0,position:null};
-async function dashboard(){if(!$('profileForm'))return;const user=await requireUser();if(!user)return;logoutSetup();const {data:p,error}=await db.from('nexora_profiles').select('*').eq('user_id',user.id).single();if(error)return msg('dashMsg','Hãy chạy file SQL v1.0 trong Supabase trước.',true);myProfile=p;$('displayName').value=p.display_name||'';$('gameUid').value=p.game_uid||'';$('gameRank').value=p.game_rank||'Chưa cập nhật';$('helloName').textContent=p.display_name||'Game thủ';$('navName').textContent=p.display_name||'';$('myPoints').textContent=p.points||0;if(p.role==='admin')$('adminLink').classList.remove('hidden');drawCard();renderProfileHero();loadXpProgress();loadSeason(user);loadLeaderboard();loadEvents(user);loadDaily(user);loadMissionCenter();loadRewards(user);loadReferralCenterV2688();loadActivity();loadProofs(user);setupMediaUrlTool(user);loadPublicProfileLink(user);await loadRandomAcceptance(user);if($('refreshProofs'))$('refreshProofs').onclick=()=>loadProofs(user);if($('refreshEvents'))$('refreshEvents').onclick=()=>loadEvents(user);if($('refreshDaily'))$('refreshDaily').onclick=()=>loadDaily(user);if($('refreshRewards'))$('refreshRewards').onclick=()=>loadRewards(user);if($('refreshActivity'))$('refreshActivity').onclick=()=>loadActivity();if($('refreshSeason'))$('refreshSeason').onclick=()=>loadSeason(user);$('profileForm').onsubmit=async e=>{e.preventDefault();const upd={display_name:$('displayName').value.trim(),game_uid:$('gameUid').value.trim()||null,game_rank:$('gameRank').value};const {error}=await db.from('nexora_profiles').update(upd).eq('user_id',user.id);if(error)return msg('dashMsg',error.message,true);Object.assign(myProfile,upd);$('helloName').textContent=upd.display_name;$('navName').textContent=upd.display_name;drawCard();renderProfileHero();loadActivity();msg('dashMsg','Đã lưu hồ sơ ✓')};$('randomBtn').onclick=async()=>{if(randomAccepted)return msg('dashMsg','Bạn đang có một thử thách đã chấp nhận. Hãy hoàn thành và gửi bằng chứng trước khi nhận thử thách mới.',true);const b=$('randomBtn');b.disabled=true;b.textContent='Đang bốc...';const {data,error}=await db.rpc('nexora_pick_random_challenge');b.disabled=false;b.textContent='Bốc thử thách';if(error){console.error('nexora_pick_random_challenge:',error);return msg('dashMsg','Lỗi Advanced Challenge: '+(error.message||error.code||'Không xác định'),true);}if(!data?.ok||!data?.challenge){if((data?.message||'').toLowerCase().includes('cooldown')){await showRandomNextAvailable();return;}return msg('dashMsg',data?.message||'Hiện chưa có thử thách phù hợp. Hãy thử lại sau.',true);}hideRandomCooldownStatus();currentChallenge=data.challenge;renderRandomChallenge(currentChallenge,false)};if($('acceptBtn'))$('acceptBtn').onclick=async()=>{if(!currentChallenge||randomAccepted)return;const b=$('acceptBtn');b.disabled=true;b.textContent='Đang chấp nhận...';const {data,error}=await db.rpc('nexora_accept_random_challenge',{p_challenge_id:currentChallenge.id});if(error){b.disabled=false;b.textContent='🤝 Chấp nhận thử thách';return msg('dashMsg',error.message,true)}if(!data?.ok){b.disabled=false;b.textContent='🤝 Chấp nhận thử thách';return msg('dashMsg',data?.message||'Không thể chấp nhận thử thách.',true)}randomAccepted=true;randomExpiresAt=data?.expires_at||null;if(data?.challenge)currentChallenge=data.challenge;renderRandomChallenge(currentChallenge,true,randomExpiresAt);msg('dashMsg',data.message||'Đã chấp nhận và khóa thử thách ✓')};$('completeBtn').onclick=async()=>{if(!currentChallenge)return;if(!randomAccepted)return msg('dashMsg','Hãy chấp nhận thử thách trước khi gửi bằng chứng.',true);openProofSubmission('random',currentChallenge.id,currentChallenge.title,currentChallenge.points,user)};$('downloadCard').onclick=()=>{const a=document.createElement('a');a.download='nexora-player-card.png';a.href=$('playerCard').toDataURL('image/png');a.click()};}
+async function dashboard(){if(!$('profileForm'))return;const user=await requireUser();if(!user)return;logoutSetup();const {data:p,error}=await db.from('nexora_profiles').select('*').eq('user_id',user.id).single();if(error)return msg('dashMsg','Hãy chạy file SQL v1.0 trong Supabase trước.',true);myProfile=p;$('displayName').value=p.display_name||'';$('gameUid').value=p.game_uid||'';$('gameRank').value=p.game_rank||'Chưa cập nhật';$('helloName').textContent=p.display_name||'Game thủ';$('navName').textContent=p.display_name||'';$('myPoints').textContent=p.points||0;if(p.role==='admin')$('adminLink').classList.remove('hidden');drawCard();renderProfileHero();loadXpProgress();loadSeason(user);loadLeaderboard();loadEvents(user);loadDaily(user);loadMissionCenter();loadRewards(user);loadReferralCenterV2688();loadSiteAnnouncementsV269();loadActivity();loadProofs(user);setupMediaUrlTool(user);loadPublicProfileLink(user);await loadRandomAcceptance(user);if($('refreshProofs'))$('refreshProofs').onclick=()=>loadProofs(user);if($('refreshEvents'))$('refreshEvents').onclick=()=>loadEvents(user);if($('refreshDaily'))$('refreshDaily').onclick=()=>loadDaily(user);if($('refreshRewards'))$('refreshRewards').onclick=()=>loadRewards(user);if($('refreshActivity'))$('refreshActivity').onclick=()=>loadActivity();if($('refreshSeason'))$('refreshSeason').onclick=()=>loadSeason(user);$('profileForm').onsubmit=async e=>{e.preventDefault();const upd={display_name:$('displayName').value.trim(),game_uid:$('gameUid').value.trim()||null,game_rank:$('gameRank').value};const {error}=await db.from('nexora_profiles').update(upd).eq('user_id',user.id);if(error)return msg('dashMsg',error.message,true);Object.assign(myProfile,upd);$('helloName').textContent=upd.display_name;$('navName').textContent=upd.display_name;drawCard();renderProfileHero();loadActivity();msg('dashMsg','Đã lưu hồ sơ ✓')};$('randomBtn').onclick=async()=>{if(randomAccepted)return msg('dashMsg','Bạn đang có một thử thách đã chấp nhận. Hãy hoàn thành và gửi bằng chứng trước khi nhận thử thách mới.',true);const b=$('randomBtn');b.disabled=true;b.textContent='Đang bốc...';const {data,error}=await db.rpc('nexora_pick_random_challenge');b.disabled=false;b.textContent='Bốc thử thách';if(error){console.error('nexora_pick_random_challenge:',error);return msg('dashMsg','Lỗi Advanced Challenge: '+(error.message||error.code||'Không xác định'),true);}if(!data?.ok||!data?.challenge){if((data?.message||'').toLowerCase().includes('cooldown')){await showRandomNextAvailable();return;}return msg('dashMsg',data?.message||'Hiện chưa có thử thách phù hợp. Hãy thử lại sau.',true);}hideRandomCooldownStatus();currentChallenge=data.challenge;renderRandomChallenge(currentChallenge,false)};if($('acceptBtn'))$('acceptBtn').onclick=async()=>{if(!currentChallenge||randomAccepted)return;const b=$('acceptBtn');b.disabled=true;b.textContent='Đang chấp nhận...';const {data,error}=await db.rpc('nexora_accept_random_challenge',{p_challenge_id:currentChallenge.id});if(error){b.disabled=false;b.textContent='🤝 Chấp nhận thử thách';return msg('dashMsg',error.message,true)}if(!data?.ok){b.disabled=false;b.textContent='🤝 Chấp nhận thử thách';return msg('dashMsg',data?.message||'Không thể chấp nhận thử thách.',true)}randomAccepted=true;randomExpiresAt=data?.expires_at||null;if(data?.challenge)currentChallenge=data.challenge;renderRandomChallenge(currentChallenge,true,randomExpiresAt);msg('dashMsg',data.message||'Đã chấp nhận và khóa thử thách ✓')};$('completeBtn').onclick=async()=>{if(!currentChallenge)return;if(!randomAccepted)return msg('dashMsg','Hãy chấp nhận thử thách trước khi gửi bằng chứng.',true);openProofSubmission('random',currentChallenge.id,currentChallenge.title,currentChallenge.points,user)};$('downloadCard').onclick=()=>{const a=document.createElement('a');a.download='nexora-player-card.png';a.href=$('playerCard').toDataURL('image/png');a.click()};}
 
 function challengeDifficultyText(d){return d==='hard'?'KHÓ':d==='medium'?'VỪA':'DỄ'}
 function challengeMultiplier(d){return d==='hard'?1.5:d==='medium'?1.25:1}
@@ -781,6 +781,31 @@ function initReferralCenterV2688(){
 }
 document.addEventListener('DOMContentLoaded',initReferralCenterV2688);
 
+
+// =========================================================
+// Nexora v2.6.9 — Public Site Announcements
+// =========================================================
+async function loadSiteAnnouncementsV269(){
+ const box=$('siteAnnouncementList');if(!box)return;
+ const {data,error}=await db.rpc('nexora_public_announcements_v269',{p_limit:5});
+ if(error){box.innerHTML=`<div class="empty-state">Không tải được thông báo.<br><small>${esc(error.message||'')}</small></div>`;return}
+ const icon=t=>({update:'🆕',event:'🎟️',tournament:'🏆',system:'⚙️'}[t]||'📢');
+ const label=t=>({update:'CẬP NHẬT',event:'EVENT',tournament:'GIẢI ĐẤU',system:'HỆ THỐNG'}[t]||'THÔNG BÁO');
+ box.innerHTML=(data||[]).map(x=>`<article class="site-announcement-card type-${esc(x.type)} ${x.is_pinned?'is-pinned':''}">
+   <div class="site-announcement-icon">${icon(x.type)}</div>
+   <div class="site-announcement-body">
+     <div class="site-announcement-meta"><span>${label(x.type)}</span>${x.is_pinned?'<b>📌 GHIM</b>':''}${x.is_new?'<em>MỚI</em>':''}<time>${fmtDate(x.published_at||x.created_at)}</time></div>
+     <h3>${esc(x.title)}</h3>
+     <p>${esc(x.content)}</p>
+     ${x.link_url?`<a class="ghost small site-announcement-link" href="${esc(x.link_url)}">Mở thông báo →</a>`:''}
+   </div>
+ </article>`).join('')||'<div class="empty-state">Hiện chưa có thông báo mới từ Nexora.</div>';
+}
+function initSiteAnnouncementsV269(){
+ const b=$('refreshSiteAnnouncements');if(b)b.onclick=loadSiteAnnouncementsV269;
+}
+document.addEventListener('DOMContentLoaded',initSiteAnnouncementsV269);
+
 // Nexora v2.4.2 — Compact Module Navigation
 // One module at a time inside each main Dashboard category.
 // =========================================================
@@ -1295,3 +1320,58 @@ document.addEventListener('DOMContentLoaded',initReferralCenterV2688);
  });
 })();
 
+
+
+// =========================================================
+// Nexora v2.6.9 — Site Announcement Admin
+// =========================================================
+(function(){
+ const el=id=>document.getElementById(id);
+ const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const call=async(name,args={})=>{const c=window.NEXORA_DB;if(!c)throw new Error('Supabase chưa sẵn sàng.');const r=await c.rpc(name,args);if(r.error)throw r.error;return r.data};
+ const say=(text,bad=false)=>{const m=el('adminAnnouncementMsg');if(m){m.textContent=text;m.style.color=bad?'#ff8c82':'#62e6aa'}};
+ const typeLabel=t=>({update:'🆕 Cập nhật',event:'🎟️ Event',tournament:'🏆 Giải đấu',system:'⚙️ Hệ thống'}[t]||'📢 Thông báo');
+
+ async function load(){
+   const box=el('adminAnnouncementList');if(!box)return;
+   try{
+     const rows=await call('nexora_admin_announcements_v269',{p_limit:100});
+     box.innerHTML=(rows||[]).map(x=>`<article class="admin-v25-card admin-announcement-card">
+       <div><b>${typeLabel(x.type)} • ${safe(x.title)}</b><small>${safe(x.content)}</small></div>
+       <div class="admin-v25-meta"><span>${x.is_active?'🟢 Đang hiện':'⚫ Đã ẩn'}</span>${x.is_pinned?'<span>📌 Đã ghim</span>':''}<span>${new Date(x.created_at).toLocaleString('vi-VN')}</span>${x.expires_at?`<span>Hết hạn ${new Date(x.expires_at).toLocaleString('vi-VN')}</span>`:''}</div>
+       <div class="actions">
+         <button class="ghost small ann-toggle" data-id="${x.id}" data-active="${x.is_active}">${x.is_active?'Ẩn':'Hiện'}</button>
+         <button class="ghost small ann-pin" data-id="${x.id}" data-pin="${x.is_pinned}">${x.is_pinned?'Bỏ ghim':'📌 Ghim'}</button>
+         <button class="danger small ann-delete" data-id="${x.id}">🗑️ Xóa</button>
+       </div>
+     </article>`).join('')||'<div class="empty-state">Chưa có thông báo nào.</div>';
+
+     box.querySelectorAll('.ann-toggle').forEach(b=>b.onclick=async()=>{b.disabled=true;try{await call('nexora_admin_set_announcement_active_v269',{p_id:b.dataset.id,p_active:b.dataset.active!=='true'});await load()}catch(e){say(e.message,true);b.disabled=false}});
+     box.querySelectorAll('.ann-pin').forEach(b=>b.onclick=async()=>{b.disabled=true;try{await call('nexora_admin_set_announcement_pinned_v269',{p_id:b.dataset.id,p_pinned:b.dataset.pin!=='true'});await load()}catch(e){say(e.message,true);b.disabled=false}});
+     box.querySelectorAll('.ann-delete').forEach(b=>b.onclick=async()=>{if(!confirm('Xóa vĩnh viễn thông báo này?'))return;b.disabled=true;try{await call('nexora_admin_delete_announcement_v269',{p_id:b.dataset.id});say('Đã xóa thông báo ✓');await load()}catch(e){say(e.message,true);b.disabled=false}});
+   }catch(e){box.innerHTML=`<div class="empty-state">Hãy chạy SQL v2.6.9.<br><small>${safe(e.message)}</small></div>`}
+ }
+
+ document.addEventListener('DOMContentLoaded',()=>{
+   if(!el('adminAnnouncementList'))return;
+   load();
+   el('refreshAdminAnnouncements')?.addEventListener('click',load);
+   el('adminAnnouncementForm')?.addEventListener('submit',async e=>{
+     e.preventDefault();
+     const btn=e.submitter;if(btn)btn.disabled=true;
+     try{
+       const expires=el('adminAnnouncementExpires').value;
+       await call('nexora_admin_create_announcement_v269',{
+         p_type:el('adminAnnouncementType').value,
+         p_title:el('adminAnnouncementTitle').value.trim(),
+         p_content:el('adminAnnouncementContent').value.trim(),
+         p_link_url:el('adminAnnouncementLink').value.trim()||null,
+         p_expires_at:expires?new Date(expires).toISOString():null,
+         p_is_pinned:el('adminAnnouncementPinned').checked
+       });
+       e.target.reset();say('Đã đăng thông báo lên trang user ✓');await load();
+     }catch(err){say(err.message,true)}
+     finally{if(btn)btn.disabled=false}
+   });
+ });
+})();
