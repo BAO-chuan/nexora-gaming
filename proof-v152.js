@@ -12,12 +12,46 @@
   const linkBlock=url=>{if(!url)return'<span class="note">Không có URL bằng chứng.</span>';const u=safe(url);return `<a class="proof-url-display" href="${u}" target="_blank" rel="noopener noreferrer" title="${u}">${u}</a><div class="proof-url-actions"><a class="ghost small" href="${u}" target="_blank" rel="noopener noreferrer">Mở bằng chứng ↗</a><button type="button" class="ghost small proof-copy-url" data-url="${u}">Copy URL</button></div>`};
   const wireCopies=()=>document.querySelectorAll('.proof-copy-url').forEach(b=>b.onclick=async()=>{const ok=await copy(b.dataset.url||'');const old=b.textContent;b.textContent=ok?'Đã copy ✓':'Không copy được';setTimeout(()=>b.textContent=old,1300)});
 
-  window.showProofForm=function(type,id,title,points,user){const box=q('proofList');if(!box)return;box.scrollIntoView({behavior:'smooth',block:'center'});box.innerHTML=`<article class="proof-card"><div class="proof-head"><b>🔗 ${safe(title)}</b><strong>+${points} điểm</strong></div>${guide()}<form id="proofSubmitForm" class="proof-form"><label>URL bằng chứng<input id="proofUrl" class="proof-url-input" type="url" inputmode="url" autocomplete="url" maxlength="500" required placeholder="https://..."></label><textarea id="proofNote" maxlength="500" required placeholder="Ghi chú: kết quả trận, số mạng, Top bao nhiêu..."></textarea><div class="proof-actions"><button id="proofSubmitBtn" class="btn">Gửi URL cho Admin duyệt</button><button type="button" id="proofCancel" class="ghost">Hủy</button></div></form></article>`;wireGuide();q('proofCancel').onclick=()=>window.loadProofs(user);q('proofSubmitForm').onsubmit=async e=>{e.preventDefault();const url=q('proofUrl').value.trim();if(!validUrl(url))return msg('dashMsg','URL phải bắt đầu bằng http:// hoặc https://',true);const btn=q('proofSubmitBtn');btn.disabled=true;btn.textContent='Đang gửi...';try{const {data,error}=await db.rpc('nexora_submit_challenge_proof',{p_challenge_type:type,p_challenge_id:id,p_proof_url:url,p_note:q('proofNote').value.trim()});if(error)throw error;if(!data?.ok)return msg('dashMsg',data?.message||'Không thể gửi bằng chứng.',true);msg('dashMsg',data.message||'Đã gửi URL bằng chứng ✓');window.loadProofs(user)}catch(err){msg('dashMsg',err?.message||'Không thể gửi bằng chứng.',true)}finally{btn.disabled=false;btn.textContent='Gửi URL cho Admin duyệt'}}};
+  // v1.5.2 hotfix: app.js v1.5.1 keeps private click handlers that still open
+  // the old direct-upload form. We intercept Challenge clicks in capture phase
+  // so the URL proof flow wins without replacing the user's current app.js.
+  let urlProofRandomChallenge=null;
+  const cardPoints=card=>{const b=card?.querySelector('b');const m=(b?.textContent||'').match(/\+(\d+)/);return m?Number(m[1]):0};
+  const openDailyFromButton=btn=>{const card=btn.closest('.daily-card');const title=card?.querySelector('h3')?.textContent?.trim()||'Daily Challenge';const points=cardPoints(card);window.showProofForm('daily',btn.dataset.id,title,points)};
+
+  window.showProofForm=function(type,id,title,points,user){const box=q('proofList');if(!box)return;box.scrollIntoView({behavior:'smooth',block:'center'});box.innerHTML=`<article class="proof-card"><div class="proof-head"><b>🔗 ${safe(title)}</b><strong>+${points} điểm</strong></div>${guide()}<form id="proofSubmitForm" class="proof-form"><label>URL bằng chứng<input id="proofUrl" class="proof-url-input" type="url" inputmode="url" autocomplete="url" maxlength="500" required placeholder="https://..."></label><textarea id="proofNote" maxlength="500" required placeholder="Ghi chú: kết quả trận, số mạng, Top bao nhiêu..."></textarea><div class="proof-actions"><button id="proofSubmitBtn" class="btn">Gửi URL cho Admin duyệt</button><button type="button" id="proofCancel" class="ghost">Hủy</button></div></form></article>`;wireGuide();q('proofCancel').onclick=()=>window.loadProofs();q('proofSubmitForm').onsubmit=async e=>{e.preventDefault();const url=q('proofUrl').value.trim();if(!validUrl(url))return msg('dashMsg','URL phải bắt đầu bằng http:// hoặc https://',true);const btn=q('proofSubmitBtn');btn.disabled=true;btn.textContent='Đang gửi...';try{const {data,error}=await db.rpc('nexora_submit_challenge_proof',{p_challenge_type:type,p_challenge_id:id,p_proof_url:url,p_note:q('proofNote').value.trim()});if(error)throw error;if(!data?.ok)return msg('dashMsg',data?.message||'Không thể gửi bằng chứng.',true);msg('dashMsg',data.message||'Đã gửi URL bằng chứng ✓');window.loadProofs(user)}catch(err){msg('dashMsg',err?.message||'Không thể gửi bằng chứng.',true)}finally{btn.disabled=false;btn.textContent='Gửi URL cho Admin duyệt'}}};
 
   window.loadProofs=async function(user){const box=q('proofList');if(!box)return;const {data,error}=await db.rpc('nexora_my_challenge_proofs');if(error){box.textContent='Không tải được Proof Center. Hãy kiểm tra SQL v1.5.2.';return}box.innerHTML=guide()+((data||[]).map(x=>{const url=x.proof_url||x.url||x.proofUrl||'';return `<article class="proof-card ${safe(x.status)}"><div class="proof-head"><b>${x.challenge_type==='daily'?'🎯 Daily':'🎲 Random'} • ${safe(x.challenge_title)}</b><span class="proof-status">${status(x.status)}</span></div><small>Gửi ${date(x.created_at)} • +${x.points} điểm</small><p>${safe(x.note||'')}</p>${linkBlock(url)}${x.admin_note?`<p class="note">Admin: ${safe(x.admin_note)}</p>`:''}</article>`}).join('')||'<div class="empty-state">Chưa gửi bằng chứng Challenge nào.</div>');wireGuide();wireCopies()};
 
   window.adminProofs=async function(){const box=q('adminProofList');if(!box)return;async function load(){const {data,error}=await db.rpc('nexora_admin_challenge_proofs',{p_status:'pending'});if(error){box.textContent='Không tải được danh sách Proof. Hãy kiểm tra SQL v1.5.2.';return}box.innerHTML=(data||[]).map(x=>{const url=x.proof_url||x.url||x.proofUrl||'';return `<article class="proof-card pending"><div class="proof-head"><b>${safe(x.display_name)} • ${safe(x.challenge_title)}</b><strong>+${x.points} điểm</strong></div><small>${x.challenge_type==='daily'?'Daily':'Random'} • ${date(x.created_at)} • UID: ${safe(x.game_uid||'chưa có')}</small><p>${safe(x.note||'')}</p>${linkBlock(url)}<div class="proof-actions"><button class="btn proof-review-v152" data-id="${safe(x.submission_id)}" data-status="approved">✓ Duyệt + cộng điểm</button><button class="ghost proof-review-v152" data-id="${safe(x.submission_id)}" data-status="rejected">Từ chối</button></div></article>`}).join('')||'<div class="empty-state">Không có bằng chứng nào đang chờ duyệt.</div>';wireCopies();document.querySelectorAll('.proof-review-v152').forEach(b=>b.onclick=async()=>{let note='';if(b.dataset.status==='rejected')note=prompt('Lý do từ chối (không bắt buộc):')||'';const {data,error}=await db.rpc('nexora_admin_review_challenge_proof',{p_submission_id:b.dataset.id,p_status:b.dataset.status,p_admin_note:note});if(error)return msg('adminMsg',error.message,true);msg('adminMsg',data?.message||'Đã xử lý',!data?.ok);load()})}if(q('refreshProofAdmin'))q('refreshProofAdmin').onclick=load;await load()};
 
+  // Block the old v1.5.1 direct-upload handlers before they run.
+  document.addEventListener('click',async e=>{
+    const daily=e.target.closest?.('.daily-complete');
+    if(daily&&!daily.disabled){
+      e.preventDefault();e.stopImmediatePropagation();
+      openDailyFromButton(daily);
+      return;
+    }
+    const random=e.target.closest?.('#randomBtn');
+    if(random){
+      e.preventDefault();e.stopImmediatePropagation();
+      const {data,error}=await db.from('nexora_challenges').select('*').eq('is_active',true);
+      if(error||!data?.length)return msg('dashMsg','Chưa có challenge. Hãy chạy SQL seed hoặc thêm từ Admin.',true);
+      urlProofRandomChallenge=data[Math.floor(Math.random()*data.length)];
+      const box=q('challengeBox');
+      if(box)box.innerHTML=`<b>${safe(urlProofRandomChallenge.title)}</b><br><span>${safe(urlProofRandomChallenge.description)}</span><br><small>+${urlProofRandomChallenge.points} điểm</small>`;
+      const complete=q('completeBtn');if(complete)complete.disabled=false;
+      return;
+    }
+    const complete=e.target.closest?.('#completeBtn');
+    if(complete&&!complete.disabled&&urlProofRandomChallenge){
+      e.preventDefault();e.stopImmediatePropagation();
+      const c=urlProofRandomChallenge;
+      window.showProofForm('random',c.id,c.title,c.points);
+    }
+  },true);
+
   // Refresh only Proof UI after the original app has initialized.
-  setTimeout(async()=>{try{const {data:{user}}=await db.auth.getUser();if(user&&q('proofList')){if(q('refreshProofs'))q('refreshProofs').onclick=()=>window.loadProofs(user);window.loadProofs(user)}if(q('adminProofList'))window.adminProofs()}catch(e){console.warn('v1.5.2 proof patch:',e)}},0);
+  setTimeout(async()=>{try{const {data:{user}}=await db.auth.getUser();if(user&&q('proofList')){if(q('refreshProofs'))q('refreshProofs').onclick=()=>window.loadProofs();window.loadProofs();setTimeout(()=>window.loadProofs(),700)}if(q('adminProofList'))window.adminProofs()}catch(e){console.warn('v1.5.2 proof patch:',e)}},0);
 })();
