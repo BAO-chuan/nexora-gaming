@@ -424,3 +424,8 @@ html[data-season-rank="master"]{--rank-accent:#ff4b23;--rank-deep:#8b130f}
 .notification-item.unread{position:relative}
 .notification-item.unread:after{content:"";position:absolute;right:10px;top:10px;width:8px;height:8px;border-radius:50%;background:#ff4438;box-shadow:0 0 12px rgba(255,68,56,.8)}
 @media(max-width:600px){.admin-notif-actions{width:100%}.admin-notif-actions button{flex:1}}
+
+/* v2.6.7 — Reward Notifications */
+.reward-notification-block{margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.08)}
+.admin-notification-group+.admin-notification-group{margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08)}
+.reward-notif,.admin-reward-notif{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}
