@@ -429,3 +429,40 @@ html[data-season-rank="master"]{--rank-accent:#ff4b23;--rank-deep:#8b130f}
 .reward-notification-block{margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.08)}
 .admin-notification-group+.admin-notification-group{margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08)}
 .reward-notif,.admin-reward-notif{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}
+
+
+/* =========================================================
+   Nexora v2.6.8 — Support & Issue Report
+   ========================================================= */
+.support-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(260px,.65fr);gap:18px}
+.support-form,.support-contact-card{border:1px solid rgba(255,255,255,.09);background:rgba(8,12,18,.72);border-radius:18px;padding:18px}
+.support-form{display:grid;gap:13px}
+.support-form label{display:grid;gap:7px;font-weight:700}
+.support-form small{font-weight:500;opacity:.7}
+.support-form input,.support-form select,.support-form textarea,.support-admin-reply input,.support-reply-form input,#adminSupportFilter{width:100%;box-sizing:border-box}
+.support-form textarea{min-height:130px;resize:vertical}
+.support-contact-card h3,.support-form h3{margin-top:0}
+.support-rule{display:grid;gap:5px;padding:13px 0;border-top:1px solid rgba(255,255,255,.08)}
+.support-rule span{opacity:.78;line-height:1.55}
+.support-ticket-card{border:1px solid rgba(255,255,255,.09);background:rgba(8,12,18,.7);border-radius:18px;padding:16px;margin-top:12px}
+.support-ticket-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.support-ticket-head b{display:block}
+.support-ticket-head small{display:block;margin-top:5px;opacity:.68}
+.support-status{white-space:nowrap;border-radius:999px;padding:6px 10px;font-size:.78rem;font-weight:800;border:1px solid rgba(255,255,255,.12)}
+.support-status.pending{background:rgba(255,179,0,.12)}
+.support-status.processing{background:rgba(32,230,255,.11)}
+.support-status.resolved{background:rgba(45,210,120,.12)}
+.support-status.closed{opacity:.62}
+.support-thread{display:grid;gap:8px;margin-top:14px}
+.support-message{display:grid;gap:4px;border-radius:13px;padding:10px 12px;background:rgba(255,255,255,.045)}
+.support-message.admin{border-left:3px solid #20e6ff}
+.support-message.user{border-left:3px solid #ff9f1a}
+.support-message small{opacity:.55}
+.support-reply-form,.support-admin-reply{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:12px}
+.support-evidence{display:inline-block;margin-top:6px}
+.support-admin-card{margin-bottom:12px}
+@media(max-width:760px){
+ .support-grid{grid-template-columns:1fr}
+ .support-ticket-head{display:grid}
+ .support-reply-form,.support-admin-reply{grid-template-columns:1fr}
+}

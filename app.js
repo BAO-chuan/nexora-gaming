@@ -484,7 +484,8 @@ hydrateRankImages();authPage();dashboard();admin();adminEvents();adminProofs();i
     rewards:'Điểm danh, mốc Streak, Event và lượt tham gia.',
     proof:'Công cụ Media → URL và trung tâm gửi bằng chứng Challenge.',
     profile:'Player Card, hồ sơ công khai và Share Card.',
-    community:'Follow game thủ, Activity Feed, Clan/Squad và Tournament Hub.'
+    community:'Follow game thủ, Activity Feed, Clan/Squad và Tournament Hub.',
+    support:'Gửi báo cáo sự cố, theo dõi Ticket và trao đổi trực tiếp với Admin.'
   };
   const buttons=[...tabs.querySelectorAll('[data-dashboard-tab]')];
   const sections=[...document.querySelectorAll('[data-dash-category]')];
@@ -527,7 +528,8 @@ hydrateRankImages();authPage();dashboard();admin();adminEvents();adminProofs();i
     rewards:[['daily-reward','🎁 Điểm danh','.reward-hub'],['reward-center','🛍️ Đổi thưởng','#rewardShopList'],['reward-history','🧾 Lịch sử đổi','#myRedemptionList'],['events','🎟️ Event','#eventList'],['entries','🎫 Lượt của tôi','#myEntries']],
     proof:[['media','🔗 Media → URL','#mediaUrlTool'],['proof-center','🛡️ Proof Center','#proofList']],
     profile:[['id-card','🪪 ID Card','#playerCard'],['public-profile','🌐 Public Profile','.public-profile-hub']],
-    community:[['feed','🔥 Hoạt động','#communityFeedList'],['players','👥 Người chơi','#playerSearchResults'],['missions','⚡ Nhiệm vụ','#communityMissionList'],['notifications','🔔 Thông báo','#notificationList'],['clan','🛡️ Clan','#myClanBox'],['clan-board','🏆 BXH Clan','#clanLeaderboardList'],['tournaments','🎮 Giải đấu','#tournamentList']]
+    community:[['feed','🔥 Hoạt động','#communityFeedList'],['players','👥 Người chơi','#playerSearchResults'],['missions','⚡ Nhiệm vụ','#communityMissionList'],['notifications','🔔 Thông báo','#notificationList'],['clan','🛡️ Clan','#myClanBox'],['clan-board','🏆 BXH Clan','#clanLeaderboardList'],['tournaments','🎮 Giải đấu','#tournamentList']],
+    support:[['new-ticket','📨 Báo cáo sự cố','#supportTicketForm'],['my-tickets','🎫 Ticket của tôi','#supportTicketList']]
   };
   const sectionFor=(selector)=>{
     const el=document.querySelector(selector);
@@ -825,3 +827,103 @@ hydrateRankImages();authPage();dashboard();admin();adminEvents();adminProofs();i
  });
 })();
 
+
+
+// =========================================================
+// Nexora v2.6.8 — Support & Issue Report System
+// =========================================================
+(function(){
+ const $s=id=>document.getElementById(id);
+ const escs=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const dbs=()=>window.NEXORA_DB;
+ const rpc=async(name,args={})=>{
+   const db=dbs(); if(!db) throw new Error('Supabase chưa sẵn sàng. Hãy tải lại trang.');
+   const r=await db.rpc(name,args); if(r.error) throw r.error; return r.data;
+ };
+ const statusText=s=>({pending:'Chờ xử lý',processing:'Đang xử lý',resolved:'Đã giải quyết',closed:'Đã đóng'}[s]||s);
+ const catText=s=>({challenge:'Challenge / Mission',proof:'Proof / Bằng chứng',reward:'Đổi thưởng',points:'PTS / Điểm',account:'Tài khoản',website:'Lỗi website',other:'Vấn đề khác'}[s]||s);
+ const fmt=d=>{try{return new Date(d).toLocaleString('vi-VN')}catch{return d||''}};
+ const toast=(m,bad=false)=>{
+   const e=$s('dashMsg')||$s('adminMsg');
+   if(e){e.textContent=m;e.style.color=bad?'#ff6b7a':'#20e6ff';e.scrollIntoView({behavior:'smooth',block:'nearest'});}
+ };
+
+ async function loadMyTickets(){
+   const box=$s('supportTicketList'); if(!box)return;
+   try{
+     const rows=await rpc('nexora_my_support_tickets_v268',{p_limit:50});
+     box.innerHTML=(rows||[]).map(t=>`<article class="support-ticket-card">
+       <div class="support-ticket-head"><div><b>${escs(t.ticket_code)} • ${escs(t.subject)}</b><small>${escs(catText(t.category))} • ${fmt(t.updated_at)}</small></div><span class="support-status ${escs(t.status)}">${escs(statusText(t.status))}</span></div>
+       <p>${escs(t.message)}</p>
+       ${t.evidence_url?`<a class="ghost small support-evidence" href="${escs(t.evidence_url)}" target="_blank" rel="noopener">Mở bằng chứng</a>`:''}
+       <div class="support-thread">${(t.messages||[]).map(m=>`<div class="support-message ${m.sender_role==='admin'?'admin':'user'}"><b>${m.sender_role==='admin'?'👨‍💻 Admin':'👤 Bạn'}</b><span>${escs(m.message)}</span><small>${fmt(m.created_at)}</small></div>`).join('')||'<div class="empty-state">Chưa có phản hồi.</div>'}</div>
+       ${!['closed'].includes(t.status)?`<form class="support-reply-form" data-id="${t.id}"><input maxlength="1000" placeholder="Phản hồi thêm cho Admin..." required><button class="ghost small">Gửi</button></form>`:''}
+     </article>`).join('')||'<div class="empty-state">Bạn chưa có Ticket hỗ trợ.</div>';
+     box.querySelectorAll('.support-reply-form').forEach(f=>f.onsubmit=async e=>{
+       e.preventDefault();const input=f.querySelector('input');const msg=input.value.trim();if(!msg)return;
+       try{await rpc('nexora_reply_support_ticket_v268',{p_ticket_id:f.dataset.id,p_message:msg});input.value='';await loadMyTickets();toast('Đã gửi phản hồi cho Admin ✓')}
+       catch(err){toast(err.message,true)}
+     });
+   }catch(e){box.textContent='Hãy chạy SQL v2.6.8 để bật Support Center. '+e.message}
+ }
+
+ async function createTicket(e){
+   e.preventDefault();
+   const btn=e.submitter||e.target.querySelector('button[type="submit"]'); if(btn)btn.disabled=true;
+   try{
+     const out=await rpc('nexora_create_support_ticket_v268',{
+       p_category:$s('supportCategory').value,
+       p_subject:$s('supportSubject').value.trim(),
+       p_message:$s('supportMessage').value.trim(),
+       p_evidence_url:$s('supportEvidenceUrl').value.trim()||null
+     });
+     e.target.reset(); await loadMyTickets();
+     toast(`Đã gửi Ticket ${out?.ticket_code||''} cho Admin ✓`);
+     document.querySelector('[data-module-tab="my-tickets"]')?.click();
+   }catch(err){toast(err.message,true)}
+   finally{if(btn)btn.disabled=false}
+ }
+
+ async function loadAdminTickets(){
+   const box=$s('adminSupportTicketList'); if(!box)return;
+   try{
+     const filter=$s('adminSupportFilter')?.value||'open';
+     const rows=await rpc('nexora_admin_support_tickets_v268',{p_filter:filter,p_limit:100});
+     const pending=(rows||[]).filter(x=>['pending','processing'].includes(x.status)).length;
+     const badge=$s('adminSupportBadge');if(badge){badge.textContent=pending;badge.classList.toggle('hidden',pending===0)}
+     box.innerHTML=(rows||[]).map(t=>`<article class="admin-v25-card support-admin-card">
+       <div class="support-ticket-head"><div><b>${escs(t.ticket_code)} • ${escs(t.subject)}</b><small>${escs(t.display_name||'Game thủ')} • ${escs(catText(t.category))} • ${fmt(t.updated_at)}</small></div><span class="support-status ${escs(t.status)}">${escs(statusText(t.status))}</span></div>
+       <p>${escs(t.message)}</p>
+       ${t.evidence_url?`<a class="ghost small support-evidence" href="${escs(t.evidence_url)}" target="_blank" rel="noopener">Mở bằng chứng</a>`:''}
+       <div class="support-thread">${(t.messages||[]).map(m=>`<div class="support-message ${m.sender_role==='admin'?'admin':'user'}"><b>${m.sender_role==='admin'?'👨‍💻 Admin':'👤 Người dùng'}</b><span>${escs(m.message)}</span><small>${fmt(m.created_at)}</small></div>`).join('')}</div>
+       <div class="admin-v25-actions">
+         ${t.status==='pending'?`<button class="ghost support-status-btn" data-id="${t.id}" data-status="processing">Nhận xử lý</button>`:''}
+         ${!['resolved','closed'].includes(t.status)?`<button class="btn support-status-btn" data-id="${t.id}" data-status="resolved">✓ Đã giải quyết</button>`:''}
+         ${t.status==='resolved'?`<button class="ghost support-status-btn" data-id="${t.id}" data-status="closed">Đóng Ticket</button>`:''}
+       </div>
+       ${t.status!=='closed'?`<form class="support-admin-reply" data-id="${t.id}"><input maxlength="1000" placeholder="Trả lời người dùng..." required><button class="ghost small">Gửi phản hồi</button></form>`:''}
+     </article>`).join('')||'<div class="empty-state">Không có Ticket phù hợp.</div>';
+
+     box.querySelectorAll('.support-status-btn').forEach(b=>b.onclick=async()=>{
+       try{await rpc('nexora_admin_set_support_status_v268',{p_ticket_id:b.dataset.id,p_status:b.dataset.status});await loadAdminTickets();toast('Đã cập nhật Ticket ✓')}
+       catch(e){toast(e.message,true)}
+     });
+     box.querySelectorAll('.support-admin-reply').forEach(f=>f.onsubmit=async e=>{
+       e.preventDefault();const input=f.querySelector('input');const msg=input.value.trim();if(!msg)return;
+       try{await rpc('nexora_admin_reply_support_ticket_v268',{p_ticket_id:f.dataset.id,p_message:msg});input.value='';await loadAdminTickets();toast('Đã gửi phản hồi ✓')}
+       catch(err){toast(err.message,true)}
+     });
+   }catch(e){box.textContent='Hãy chạy SQL v2.6.8 để bật Support Desk. '+e.message}
+ }
+
+ document.addEventListener('DOMContentLoaded',()=>{
+   $s('supportTicketForm')?.addEventListener('submit',createTicket);
+   $s('refreshSupportTickets')?.addEventListener('click',loadMyTickets);
+   if($s('supportTicketList')){loadMyTickets();setInterval(loadMyTickets,30000)}
+
+   $s('refreshAdminSupport')?.addEventListener('click',loadAdminTickets);
+   $s('adminSupportSearchBtn')?.addEventListener('click',loadAdminTickets);
+   $s('adminSupportFilter')?.addEventListener('change',loadAdminTickets);
+   if($s('adminSupportTicketList')){loadAdminTickets();setInterval(loadAdminTickets,20000)}
+ });
+})();
