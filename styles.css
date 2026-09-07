@@ -160,3 +160,89 @@ body:before{
   .ff-profile-banner{display:block}.ff-profile-banner small{display:block;margin-top:4px}
   .dashboard-tab{font-size:.82rem}
 }
+
+/* =========================================================
+   NEXORA v2.2 — VISUAL RANK UI
+   ========================================================= */
+:root{
+  --rank-accent:#e47949;
+  --rank-deep:#6f321e;
+}
+html[data-season-rank="silver"]{--rank-accent:#d9e3ef;--rank-deep:#657382}
+html[data-season-rank="gold"]{--rank-accent:#ffc21a;--rank-deep:#8a5600}
+html[data-season-rank="platinum"]{--rank-accent:#21b8ff;--rank-deep:#084b88}
+html[data-season-rank="diamond"]{--rank-accent:#c444ff;--rank-deep:#532080}
+html[data-season-rank="master"]{--rank-accent:#ff4b23;--rank-deep:#8b130f}
+
+.player-rank-visual{
+  margin:18px 0 16px;
+  display:flex;
+  align-items:center;
+  gap:18px;
+  padding:16px 18px;
+  border:1px solid color-mix(in srgb,var(--rank-accent) 58%,transparent);
+  border-radius:18px;
+  background:
+    radial-gradient(circle at 14% 50%,color-mix(in srgb,var(--rank-accent) 25%,transparent),transparent 42%),
+    linear-gradient(135deg,#0b0e14,#12151e 65%,color-mix(in srgb,var(--rank-deep) 35%,#0d1016));
+  box-shadow:0 0 30px color-mix(in srgb,var(--rank-accent) 18%,transparent), inset 0 0 26px #0008;
+  overflow:hidden;
+  position:relative;
+}
+.player-rank-visual:after{
+  content:"";position:absolute;inset:auto -35% -70% 30%;height:130%;transform:rotate(-15deg);
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--rank-accent) 20%,transparent),transparent);pointer-events:none;
+}
+.rank-orbit{width:104px;height:104px;flex:0 0 104px;display:grid;place-items:center;position:relative}
+.rank-orbit:before{content:"";position:absolute;inset:5px;border:1px solid var(--rank-accent);border-radius:50%;box-shadow:0 0 24px var(--rank-accent);opacity:.55}
+.rank-orbit img{width:96px;height:96px;filter:drop-shadow(0 0 15px var(--rank-accent));animation:rankFloat 3.3s ease-in-out infinite}
+.rank-visual-copy{display:flex;flex-direction:column;gap:4px;position:relative;z-index:1}
+.rank-visual-copy span{font-size:11px;letter-spacing:.18em;color:#8e9aab;font-weight:900}
+.rank-visual-copy strong{font-size:30px;line-height:1;color:var(--rank-accent);text-shadow:0 0 14px color-mix(in srgb,var(--rank-accent) 65%,transparent)}
+.rank-visual-copy small{color:#e8edf6;font-weight:800}
+
+.season-rank-showcase{
+  display:grid;grid-template-columns:180px 1fr;gap:22px;align-items:center;margin:20px 0;
+  min-height:190px;padding:20px;border-radius:22px;border:1px solid color-mix(in srgb,var(--rank-accent) 58%,transparent);
+  background:radial-gradient(circle at 18% 50%,color-mix(in srgb,var(--rank-accent) 22%,transparent),transparent 36%),linear-gradient(130deg,#090c12,#111722 70%,color-mix(in srgb,var(--rank-deep) 45%,#0b0f15));
+  box-shadow:0 0 36px color-mix(in srgb,var(--rank-accent) 16%,transparent), inset 0 0 38px #0008;
+}
+.season-rank-emblem{display:grid;place-items:center;min-height:150px;position:relative}
+.season-rank-emblem:before,.season-rank-emblem:after{content:"";position:absolute;border-radius:50%;border:1px solid var(--rank-accent);opacity:.35}
+.season-rank-emblem:before{width:148px;height:148px;box-shadow:0 0 30px var(--rank-accent)}
+.season-rank-emblem:after{width:118px;height:118px}
+.season-rank-emblem img{width:142px;height:142px;position:relative;z-index:1;filter:drop-shadow(0 0 18px var(--rank-accent));animation:rankFloat 3.5s ease-in-out infinite}
+.season-rank-info{display:flex;flex-direction:column;gap:7px}
+.season-rank-info>span{font-size:11px;letter-spacing:.2em;font-weight:900;color:#8c98aa}
+.season-rank-info>strong{font-size:40px;line-height:1;color:var(--rank-accent);text-transform:uppercase;text-shadow:0 0 20px color-mix(in srgb,var(--rank-accent) 65%,transparent)}
+.season-rank-info>b{font-size:14px;color:#dfe6f0}
+.season-rank-info .progress-track{margin-top:10px}
+.season-rank-info .progress-track i{background:linear-gradient(90deg,var(--rank-deep),var(--rank-accent));box-shadow:0 0 14px var(--rank-accent)}
+
+.rank-road{display:grid;grid-template-columns:repeat(6,minmax(92px,1fr));gap:8px;margin:18px 0 22px;overflow-x:auto;padding:4px 2px 8px}
+.rank-road>div{min-width:92px;padding:10px 7px;border:1px solid #29303c;border-radius:14px;background:#090c12;display:flex;flex-direction:column;align-items:center;gap:5px;opacity:.48;transition:.2s ease}
+.rank-road img{width:62px;height:62px;filter:grayscale(.45)}
+.rank-road span{font-size:11px;font-weight:900;text-transform:uppercase;color:#9da8b7}
+.rank-road>div.active{opacity:1;border-color:var(--rank-accent);background:linear-gradient(180deg,color-mix(in srgb,var(--rank-accent) 15%,#0d1017),#090c12);box-shadow:0 0 20px color-mix(in srgb,var(--rank-accent) 20%,transparent);transform:translateY(-2px)}
+.rank-road>div.active img{filter:drop-shadow(0 0 10px var(--rank-accent))}
+.rank-road>div.active span{color:var(--rank-accent)}
+
+.public-rank-badge{margin-left:auto;min-width:150px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:1px}
+.public-rank-badge img{width:100px;height:100px;filter:drop-shadow(0 0 16px var(--rank-accent));animation:rankFloat 3.5s ease-in-out infinite}
+.public-rank-badge span{font-size:10px;letter-spacing:.16em;font-weight:900;color:#8793a5}
+.public-rank-badge strong{font-size:17px;color:var(--rank-accent);text-shadow:0 0 12px color-mix(in srgb,var(--rank-accent) 55%,transparent)}
+.public-profile-card{border-color:color-mix(in srgb,var(--rank-accent) 45%,#27303a)!important;box-shadow:0 0 34px color-mix(in srgb,var(--rank-accent) 12%,transparent)!important}
+.share-card-wrap canvas,#playerCard{border:1px solid color-mix(in srgb,var(--rank-accent) 45%,#2b3440);box-shadow:0 0 30px color-mix(in srgb,var(--rank-accent) 13%,transparent);border-radius:16px}
+
+@keyframes rankFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-5px) scale(1.025)}}
+@media (max-width:760px){
+  .season-rank-showcase{grid-template-columns:110px 1fr;gap:12px;min-height:145px;padding:14px}
+  .season-rank-emblem{min-height:110px}.season-rank-emblem:before{width:105px;height:105px}.season-rank-emblem:after{width:83px;height:83px}.season-rank-emblem img{width:102px;height:102px}
+  .season-rank-info>strong{font-size:29px}
+  .rank-road{grid-template-columns:repeat(6,90px)}
+  .rank-road img{width:54px;height:54px}
+  .public-hero{align-items:center;flex-wrap:wrap}
+  .public-rank-badge{order:3;width:100%;margin-left:0;flex-direction:row;justify-content:center;gap:10px;padding-top:10px;border-top:1px solid #252d37}
+  .public-rank-badge img{width:72px;height:72px}.public-rank-badge span{display:none}
+  .player-rank-visual{padding:13px}.rank-orbit{width:82px;height:82px;flex-basis:82px}.rank-orbit img{width:76px;height:76px}.rank-visual-copy strong{font-size:24px}
+}
