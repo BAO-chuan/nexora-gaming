@@ -227,3 +227,60 @@ hydrateRankImages();authPage();dashboard();admin();adminEvents();adminProofs();p
   if(!notes[saved])saved='overview';
   showCategory(saved,false);
 })();
+
+
+// =========================================================
+// Nexora v2.4.2 — Compact Module Navigation
+// One module at a time inside each main Dashboard category.
+// =========================================================
+(function initCompactModuleNavigation(){
+  const configs={
+    overview:[['profile','👤 Hồ sơ nhanh','.profile-panel'],['xp','⚡ Level & XP','.xp-system'],['activity','🕘 Gần đây','#activityList']],
+    challenges:[['random','🎲 Random','.advanced-challenge'],['daily','🔥 Daily','#dailyList']],
+    ranking:[['season','🏆 Rank mùa','.season-system'],['achievements','🏅 Huy hiệu','#achievementList'],['board','📊 BXH','#leaderboard']],
+    rewards:[['daily-reward','🎁 Điểm danh','.reward-hub'],['events','🎟️ Event','#eventList'],['entries','🎫 Lượt của tôi','#myEntries']],
+    proof:[['media','🔗 Media → URL','#mediaUrlTool'],['proof-center','🛡️ Proof Center','#proofList']],
+    profile:[['id-card','🪪 ID Card','#playerCard'],['public-profile','🌐 Public Profile','.public-profile-hub']],
+    community:[['feed','🔥 Hoạt động','#communityFeedList'],['players','👥 Người chơi','#playerSearchResults'],['missions','⚡ Nhiệm vụ','#communityMissionList'],['notifications','🔔 Thông báo','#notificationList'],['clan','🛡️ Clan','#myClanBox'],['clan-board','🏆 BXH Clan','#clanLeaderboardList'],['tournaments','🎮 Giải đấu','#tournamentList']]
+  };
+  const sectionFor=(selector)=>{
+    const el=document.querySelector(selector);
+    return el?.closest('[data-dash-category]')||null;
+  };
+  Object.entries(configs).forEach(([category,items])=>items.forEach(([key,label,selector])=>{
+    const sec=sectionFor(selector); if(sec) sec.dataset.dashModule=key;
+  }));
+
+  const bar=document.createElement('div');
+  bar.id='dashboardModuleNav'; bar.className='dashboard-module-nav hidden';
+  const navPanel=document.querySelector('.dashboard-nav-panel');
+  if(navPanel) navPanel.insertAdjacentElement('afterend',bar);
+
+  let activeCategory='overview';
+  const getSaved=(cat)=>{try{return sessionStorage.getItem('nexora_module_'+cat)||''}catch{return ''}};
+  const save=(cat,key)=>{try{sessionStorage.setItem('nexora_module_'+cat,key)}catch{}};
+  function showModule(category,key,scroll=false){
+    const available=(configs[category]||[]).filter(x=>sectionFor(x[2]));
+    if(!available.length){bar.classList.add('hidden');return}
+    if(!available.some(x=>x[0]===key)) key=available[0][0];
+    document.querySelectorAll(`[data-dash-category="${category}"]`).forEach(sec=>{
+      const module=sec.dataset.dashModule;
+      sec.classList.toggle('dashboard-module-hidden',!!module && module!==key);
+    });
+    bar.querySelectorAll('[data-module-tab]').forEach(b=>b.classList.toggle('active',b.dataset.moduleTab===key));
+    save(category,key);
+    if(scroll){const target=document.querySelector(`[data-dash-category="${category}"][data-dash-module="${key}"]`);target?.scrollIntoView({behavior:'smooth',block:'start'});}
+  }
+  function render(category){
+    activeCategory=category;
+    const available=(configs[category]||[]).filter(x=>sectionFor(x[2]));
+    if(!available.length){bar.classList.add('hidden');return}
+    bar.classList.remove('hidden');
+    bar.innerHTML=`<div class="module-nav-label">${category==='community'?'COMMUNITY HUB':'MODULES'} • v2.4.2</div><div class="module-tabs">${available.map(([key,label])=>`<button type="button" class="module-tab" data-module-tab="${key}">${label}</button>`).join('')}</div>`;
+    bar.querySelectorAll('[data-module-tab]').forEach(b=>b.onclick=()=>showModule(category,b.dataset.moduleTab,true));
+    showModule(category,getSaved(category)||available[0][0],false);
+  }
+  document.querySelectorAll('[data-dashboard-tab]').forEach(btn=>btn.addEventListener('click',()=>setTimeout(()=>render(btn.dataset.dashboardTab),0)));
+  let initial='overview';try{initial=sessionStorage.getItem('nexora_dashboard_category')||'overview'}catch{}
+  setTimeout(()=>render(initial),0);
+})();
