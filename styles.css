@@ -395,3 +395,16 @@ html[data-season-rank="master"]{--rank-accent:#ff4b23;--rank-deep:#8b130f}
 .mission-progress{display:grid;grid-template-columns:1fr auto;gap:9px;align-items:center;margin-bottom:12px}.mission-progress>div{height:8px;border-radius:99px;background:#090d13;overflow:hidden}.mission-progress i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#ff7a18,#ffc247)}.mission-progress span{font-size:11px;font-weight:900}
 .mission-center-card footer strong{color:#ffc247}
 @media(max-width:700px){.mission-center-grid{grid-template-columns:1fr}}
+
+/* v2.6.5 — About Nexora */
+.nexora-about{margin-top:18px}
+.nexora-about-lead{max-width:850px;color:#c2cbd5;line-height:1.75}
+.nexora-about-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0}
+.nexora-about-grid article{padding:16px;border:1px solid rgba(255,255,255,.08);border-radius:15px;background:linear-gradient(145deg,rgba(255,155,32,.06),rgba(255,255,255,.018))}
+.nexora-about-grid article>span{font-size:25px}.nexora-about-grid h3{margin:10px 0 6px}.nexora-about-grid p{margin:0;color:#aeb8c3;font-size:13px;line-height:1.55}
+.nexora-about-flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:14px;border:1px solid rgba(255,181,61,.2);border-radius:14px;background:rgba(255,155,31,.05)}
+.nexora-about-flow b{width:100%;margin-bottom:3px;color:#ffbd55}.nexora-about-flow span{font-size:12px;font-weight:800;padding:7px 9px;background:#111720;border-radius:9px}.nexora-about-flow i{color:#ff9b20;font-style:normal;font-weight:900}
+.nexora-about-notice{margin-top:14px;padding:14px;border-left:3px solid #ff9b20;background:rgba(255,155,32,.055);border-radius:0 12px 12px 0}
+.nexora-about-notice p{margin:7px 0 0;color:#aeb8c3;font-size:12px;line-height:1.65}
+@media(max-width:900px){.nexora-about-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.nexora-about-grid{grid-template-columns:1fr}.nexora-about-flow i{display:none}.nexora-about-flow span{width:100%}}
