@@ -116,10 +116,112 @@ function openProofSubmission(type,id,title,points,user){
     },80);
   },80);
 }
-function showProofForm(type,id,title,points,user){const box=$('proofList');if(!box)return;const lastUrl=window.sessionStorage.getItem('nexora_last_media_url')||'';box.scrollIntoView({behavior:'smooth',block:'center'});box.innerHTML=`<article class="proof-card"><div class="proof-head"><b>🔗 ${esc(title)}</b><strong>+${points} điểm</strong></div><form id="proofSubmitForm" class="proof-form"><label>🔗 URL ảnh / video bằng chứng<input id="proofUrl" type="url" inputmode="url" maxlength="500" required placeholder="https://..." value="${esc(lastUrl)}"></label><details style="margin:4px 0 12px"><summary style="cursor:pointer;font-weight:800">❓ Cách lấy URL</summary><div class="note" style="margin-top:10px;line-height:1.65">Cách nhanh nhất: dùng tool <b>Media → URL</b> trên Dashboard. Chọn ảnh/video → tải lên → sao chép URL → dán vào đây.<br><br>Bạn cũng có thể dùng URL từ dịch vụ khác, miễn Admin mở được link.<br><br>⚠️ Không gửi mật khẩu, OTP hoặc thông tin đăng nhập game.</div></details><textarea id="proofNote" maxlength="500" required placeholder="Ghi chú: kết quả trận, số mạng, Top bao nhiêu..."></textarea><div class="proof-actions"><button id="proofSubmitBtn" class="btn">Gửi Admin duyệt</button><button type="button" id="proofCancel" class="ghost">Hủy</button></div></form></article>`;$('proofCancel').onclick=()=>loadProofs(user);$('proofSubmitForm').onsubmit=async e=>{e.preventDefault();const url=$('proofUrl').value.trim(),note=$('proofNote').value.trim();if(!/^https?:\/\/\S+$/i.test(url))return msg('dashMsg','URL bằng chứng phải bắt đầu bằng http:// hoặc https://',true);const btn=$('proofSubmitBtn');btn.disabled=true;btn.textContent='Đang gửi...';try{const {data,error}=await db.rpc('nexora_submit_challenge_proof',{p_challenge_type:type,p_challenge_id:id,p_proof_url:url,p_note:note});if(error)throw error;if(!data?.ok)return msg('dashMsg',data?.message||'Không thể gửi bằng chứng.',true);window.sessionStorage.removeItem('nexora_last_media_url');msg('dashMsg',data.message||'Đã gửi URL bằng chứng');if(type==='random')await loadRandomAcceptance(user);loadProofs(user)}catch(err){msg('dashMsg',err?.message||'Không thể gửi bằng chứng.',true)}finally{btn.disabled=false;btn.textContent='Gửi Admin duyệt'}}}
-async function removeProofFromHistory(id,status,user){const ask=status==='pending'?'Hủy bằng chứng đang chờ duyệt? Bạn có thể gửi lại Challenge này sau khi hủy.':'Ẩn bằng chứng này khỏi lịch sử của bạn? Điểm và dữ liệu Admin vẫn được giữ.';if(!confirm(ask))return;const {data,error}=await db.rpc('nexora_user_remove_challenge_proof',{p_submission_id:id});if(error)return msg('dashMsg',error.message,true);if(!data?.ok)return msg('dashMsg',data?.message||'Không thể xóa lịch sử.',true);if(data.storage_path){try{await db.storage.from(PROOF_BUCKET).remove([data.storage_path])}catch{}}msg('dashMsg',data.message||'Đã cập nhật lịch sử');loadProofs(user)}
-async function loadProofs(user){const box=$('proofList');if(!box)return;const {data,error}=await db.rpc('nexora_my_challenge_proofs');if(error){box.textContent='Hãy chạy SQL v1.6 trước.';return}const cards=await Promise.all((data||[]).map(async x=>{const url=await proofHref(x),action=x.status==='pending'?'Hủy & xóa':'Xóa khỏi lịch sử';return `<article class="proof-card ${x.status}"><div class="proof-head"><b>${x.challenge_type==='daily'?'🎯 Daily':'🎲 Random'} • ${esc(x.challenge_title)}</b><span class="proof-status">${proofStatus(x.status)}</span></div><small>Gửi ${fmtDate(x.created_at)} • +${x.points} điểm</small><p>${esc(x.note||'')}</p>${proofMedia(url,x.proof_mime_type)}${x.admin_note?`<p class="note">Admin: ${esc(x.admin_note)}</p>`:''}<div class="proof-history-action"><button type="button" class="ghost proof-delete" data-id="${x.submission_id}" data-status="${x.status}">${action}</button></div></article>`}));box.innerHTML=cards.join('')||'<div class="empty-state">Chưa có bằng chứng Challenge nào.</div>';document.querySelectorAll('.proof-delete').forEach(b=>b.onclick=()=>removeProofFromHistory(b.dataset.id,b.dataset.status,user))}
-async function adminProofs(){const box=$('adminProofList');if(!box)return;async function load(){const {data,error}=await db.rpc('nexora_admin_challenge_proofs',{p_status:'pending'});if(error){box.textContent='Hãy chạy SQL v1.5.2 trước.';return}const cards=await Promise.all((data||[]).map(async x=>{const url=await proofHref(x);return `<article class="proof-card pending"><div class="proof-head"><b>${esc(x.display_name)} • ${esc(x.challenge_title)}</b><strong>+${x.points} điểm</strong></div><small>${x.challenge_type==='daily'?'Daily':'Random'} • ${fmtDate(x.created_at)} • UID: ${esc(x.game_uid||'chưa có')}</small><p>${esc(x.note||'')}</p>${proofMedia(url,x.proof_mime_type)}<div class="proof-actions"><button class="btn proof-review" data-id="${x.submission_id}" data-status="approved">✓ Duyệt + cộng điểm</button><button class="ghost proof-review" data-id="${x.submission_id}" data-status="rejected">Từ chối</button></div></article>`}));box.innerHTML=cards.join('')||'<div class="empty-state">Không có bằng chứng nào đang chờ duyệt.</div>';document.querySelectorAll('.proof-review').forEach(b=>b.onclick=async()=>{let note='';if(b.dataset.status==='rejected')note=prompt('Lý do từ chối (không bắt buộc):')||'';const {data,error}=await db.rpc('nexora_admin_review_challenge_proof',{p_submission_id:b.dataset.id,p_status:b.dataset.status,p_admin_note:note});if(error)return msg('adminMsg',error.message,true);msg('adminMsg',data?.message||'Đã xử lý',!data?.ok);load()})}if($('refreshProofAdmin'))$('refreshProofAdmin').onclick=load;await load()}
+function proofNeedsTeamImage(title){
+ const s=String(title||'').toLowerCase();
+ return /team\s*[24]/i.test(s);
+}
+function showProofForm(type,id,title,points,user){
+ const box=$('proofList');if(!box)return;
+ const lastUrl=window.sessionStorage.getItem('nexora_last_media_url')||'';
+ const needs2=type==='random'&&proofNeedsTeamImage(title);
+ box.scrollIntoView({behavior:'smooth',block:'center'});
+ box.innerHTML=`<article class="proof-card">
+   <div class="proof-head"><b>🛡️ ${esc(title)}</b><strong>+${points} điểm</strong></div>
+   <div class="proof-checklist">
+     <b>Admin sẽ kiểm tra:</b>
+     <span>✓ Đúng chế độ / đội hình theo Challenge</span>
+     <span>✓ Thứ hạng hoặc số kills đúng yêu cầu</span>
+     ${needs2?'<span>✓ Có ảnh đội hình Team 2/Team 4</span>':''}
+   </div>
+   <form id="proofSubmitForm" class="proof-form">
+     <label>📸 Proof 1 — Ảnh kết quả trận
+       <input id="proofUrl" type="url" inputmode="url" maxlength="500" required placeholder="https://..." value="${esc(lastUrl)}">
+     </label>
+     ${needs2?`<label>👥 Proof 2 — Ảnh đội hình <span class="proof-required">Bắt buộc</span>
+       <input id="proofUrl2" type="url" inputmode="url" maxlength="500" required placeholder="https://...">
+     </label>`:`<label>📎 Proof 2 — Ảnh bổ sung <span class="note">(không bắt buộc)</span>
+       <input id="proofUrl2" type="url" inputmode="url" maxlength="500" placeholder="https://...">
+     </label>`}
+     <details style="margin:4px 0 12px"><summary style="cursor:pointer;font-weight:800">❓ Cách lấy URL ảnh</summary>
+       <div class="note" style="margin-top:10px;line-height:1.65">Dùng <b>Media → URL</b> trên Dashboard để tải từng ảnh và lấy URL. Team 2/Team 4 cần ảnh thể hiện đồng đội/đội hình. Không gửi mật khẩu, OTP hoặc thông tin đăng nhập game.</div>
+     </details>
+     <textarea id="proofNote" maxlength="500" required placeholder="Ghi chú ngắn: Top bao nhiêu, bao nhiêu kills..."></textarea>
+     <div class="proof-actions"><button id="proofSubmitBtn" class="btn">Gửi Admin duyệt</button><button type="button" id="proofCancel" class="ghost">Hủy</button></div>
+   </form>
+ </article>`;
+ $('proofCancel').onclick=()=>loadProofs(user);
+ $('proofSubmitForm').onsubmit=async e=>{
+   e.preventDefault();
+   const url=$('proofUrl').value.trim(),url2=$('proofUrl2')?.value.trim()||'',note=$('proofNote').value.trim();
+   if(!/^https?:\/\/\S+$/i.test(url))return msg('dashMsg','Proof 1 phải là URL http:// hoặc https://',true);
+   if(url2&&!/^https?:\/\/\S+$/i.test(url2))return msg('dashMsg','Proof 2 phải là URL http:// hoặc https://',true);
+   if(needs2&&!url2)return msg('dashMsg','Challenge Team 2/Team 4 cần thêm ảnh đội hình ở Proof 2.',true);
+   const btn=$('proofSubmitBtn');btn.disabled=true;btn.textContent='Đang gửi...';
+   try{
+     const {data,error}=await db.rpc('nexora_submit_challenge_proof_v263',{p_challenge_type:type,p_challenge_id:id,p_proof_url:url,p_proof_url_2:url2,p_note:note});
+     if(error)throw error;if(!data?.ok)return msg('dashMsg',data?.message||'Không thể gửi bằng chứng.',true);
+     window.sessionStorage.removeItem('nexora_last_media_url');
+     msg('dashMsg',data.message||'Đã gửi bằng chứng');
+     if(type==='random')await loadRandomAcceptance(user);
+     loadProofs(user);
+   }catch(err){msg('dashMsg',err?.message||'Không thể gửi bằng chứng.',true)}
+   finally{btn.disabled=false;btn.textContent='Gửi Admin duyệt'}
+ };
+}
+async function removeProofFromHistory(id,status,user){
+ const ask=status==='pending'?'Hủy bằng chứng đang chờ duyệt? Bạn có thể gửi lại Challenge này sau khi hủy.':'Ẩn bằng chứng này khỏi lịch sử của bạn? Điểm và dữ liệu Admin vẫn được giữ.';
+ if(!confirm(ask))return;
+ const {data,error}=await db.rpc('nexora_user_remove_challenge_proof',{p_submission_id:id});
+ if(error)return msg('dashMsg',error.message,true);
+ if(!data?.ok)return msg('dashMsg',data?.message||'Không thể xóa lịch sử.',true);
+ msg('dashMsg',data.message||'Đã cập nhật lịch sử');loadProofs(user)
+}
+async function loadProofs(user){
+ const box=$('proofList');if(!box)return;
+ const {data,error}=await db.rpc('nexora_my_challenge_proofs_v263');
+ if(error){box.textContent='Hãy chạy SQL v2.6.3 trước.';return}
+ const cards=await Promise.all((data||[]).map(async x=>{
+   const url=await proofHref(x),action=x.status==='pending'?'Hủy & xóa':'Xóa khỏi lịch sử';
+   return `<article class="proof-card ${x.status}">
+    <div class="proof-head"><b>${x.challenge_type==='daily'?'🎯 Daily':'🎲 Random'} • ${esc(x.challenge_title)}</b><span class="proof-status">${proofStatus(x.status)}</span></div>
+    <small>${esc(x.game_mode||'')} ${x.team_size?`• Team ${x.team_size}`:''} • Gửi ${fmtDate(x.created_at)} • +${x.points} điểm</small>
+    <p>${esc(x.note||'')}</p>
+    <div class="proof-media-grid"><div><b>Proof 1</b>${proofMedia(url,x.proof_mime_type)}</div>${x.proof_url_2?`<div><b>Proof 2</b>${proofMedia(x.proof_url_2,'image/')}</div>`:''}</div>
+    ${x.admin_note?`<p class="note">Admin: ${esc(x.admin_note)}</p>`:''}
+    <div class="proof-history-action"><button type="button" class="ghost proof-delete" data-id="${x.submission_id}" data-status="${x.status}">${action}</button></div>
+   </article>`}));
+ box.innerHTML=cards.join('')||'<div class="empty-state">Chưa có bằng chứng Challenge nào.</div>';
+ document.querySelectorAll('.proof-delete').forEach(b=>b.onclick=()=>removeProofFromHistory(b.dataset.id,b.dataset.status,user))
+}
+async function adminProofs(){
+ const box=$('adminProofList');if(!box)return;
+ async function load(){
+   const {data,error}=await db.rpc('nexora_admin_challenge_proofs_v263',{p_status:'pending'});
+   if(error){box.textContent='Hãy chạy SQL v2.6.3 trước.';return}
+   const cards=await Promise.all((data||[]).map(async x=>{
+     const url=await proofHref(x);
+     return `<article class="proof-card pending">
+       <div class="proof-head"><b>${esc(x.display_name)} • ${esc(x.challenge_title)}</b><strong>+${x.points} điểm</strong></div>
+       <div class="admin-proof-verify">
+         <span>🎮 ${esc(x.game_mode||'Challenge')} ${x.team_size?`• Team ${x.team_size}`:''}</span>
+         <span>🔎 ${esc(x.proof_requirement||'Kiểm tra ảnh kết quả theo điều kiện Challenge')}</span>
+         <span>🆔 UID: ${esc(x.game_uid||'chưa có')} • ${fmtDate(x.created_at)}</span>
+       </div>
+       <p>${esc(x.note||'')}</p>
+       <div class="proof-media-grid"><div><b>Proof 1 — Kết quả</b>${proofMedia(url,x.proof_mime_type)}</div>${x.proof_url_2?`<div><b>Proof 2 — Đội hình/bổ sung</b>${proofMedia(x.proof_url_2,'image/')}</div>`:''}</div>
+       <div class="proof-actions"><button class="btn proof-review" data-id="${x.submission_id}" data-status="approved">✓ Duyệt + cộng điểm</button><button class="ghost proof-review" data-id="${x.submission_id}" data-status="rejected">Từ chối</button></div>
+     </article>`
+   }));
+   box.innerHTML=cards.join('')||'<div class="empty-state">Không có bằng chứng nào đang chờ duyệt.</div>';
+   document.querySelectorAll('.proof-review').forEach(b=>b.onclick=async()=>{
+     let note='';if(b.dataset.status==='rejected')note=prompt('Lý do từ chối (không bắt buộc):')||'';
+     const {data,error}=await db.rpc('nexora_admin_review_challenge_proof',{p_submission_id:b.dataset.id,p_status:b.dataset.status,p_admin_note:note});
+     if(error)return msg('adminMsg',error.message,true);
+     msg('adminMsg',data?.message||'Đã xử lý',!data?.ok);load()
+   })
+ }
+ if($('refreshProofAdmin'))$('refreshProofAdmin').onclick=load;await load()
+}
 
 async function loadPublicProfileLink(user){
  const open=$('openPublicProfile'),copy=$('copyPublicProfile'); if(!open&&!copy)return;
