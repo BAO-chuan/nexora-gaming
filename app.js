@@ -149,37 +149,6 @@ async function markAdminProofNotificationsReadV266(){
  if(!error)loadAdminProofNotificationsV266();
 }
 
-async function loadAdminRewardNotificationsV267(){
- const box=$('adminRewardNotificationList');
- if(!box&&!$('adminProofBadge'))return;
- const {data,error}=await db.rpc('nexora_admin_reward_notifications_v267',{p_limit:50});
- if(error){if(box)box.textContent='Hãy chạy SQL v2.6.7 để bật thông báo Reward.';return}
- const rows=data||[],unread=rows.filter(x=>!x.is_read).length;
- adminRewardUnreadV267=unread;updateAdminNotifyBadgeV267();
- if(box)box.innerHTML=rows.map(n=>`<div class="notification-item admin-reward-notif ${n.is_read?'':'unread'}">
-   <div class="proof-notif-icon">🎁</div><div><b>${esc(n.title)}</b><div>${esc(n.detail||'')}</div>
-   <small>${communityTime(n.created_at)}</small><button class="btn small admin-open-reward" type="button">Mở yêu cầu đổi thưởng</button></div>
- </div>`).join('')||'<div class="empty-state">Chưa có yêu cầu đổi thưởng mới.</div>';
- box?.querySelectorAll('.admin-open-reward').forEach(b=>b.onclick=()=>{
-   document.querySelector('[data-admin-module="rewards"]')?.click();
-   setTimeout(()=>{adminRewards();$('adminRedemptionList')?.scrollIntoView({behavior:'smooth',block:'start'})},80);
- });
-}
-async function markAdminRewardNotificationsReadV267(){
- const {error}=await db.rpc('nexora_admin_mark_reward_notifications_read_v267');
- if(!error)loadAdminRewardNotificationsV267();
-}
-async function refreshAllAdminNotificationsV267(){
- await Promise.all([loadAdminProofNotificationsV266(),loadAdminRewardNotificationsV267()]);
-}
-async function markAllAdminNotificationsReadV267(){
- await Promise.all([
-   db.rpc('nexora_admin_mark_proof_notifications_read_v266'),
-   db.rpc('nexora_admin_mark_reward_notifications_read_v267')
- ]);
- refreshAllAdminNotificationsV267();
-}
-
 function initAdminProofNotificationsV266(){
  if(!$('adminProofBell')&&!$('adminProofNotificationList'))return;
  $('adminProofBell')&&($('adminProofBell').onclick=()=>document.querySelector('[data-admin-module="notifications"]')?.click());
@@ -779,7 +748,39 @@ hydrateRankImages();authPage();dashboard();admin();adminEvents();adminProofs();i
   });
  }
 
- async function adminRewards(){
+ async function loadAdminRewardNotificationsV267(){
+ const box=$('adminRewardNotificationList');
+ if(!box&&!$('adminProofBadge'))return;
+ const {data,error}=await db.rpc('nexora_admin_reward_notifications_v267',{p_limit:50});
+ if(error){if(box)box.textContent='Hãy chạy SQL v2.6.7 để bật thông báo Reward.';return}
+ const rows=data||[],unread=rows.filter(x=>!x.is_read).length;
+ adminRewardUnreadV267=unread;updateAdminNotifyBadgeV267();
+ if(box)box.innerHTML=rows.map(n=>`<div class="notification-item admin-reward-notif ${n.is_read?'':'unread'}">
+   <div class="proof-notif-icon">🎁</div><div><b>${esc(n.title)}</b><div>${esc(n.detail||'')}</div>
+   <small>${communityTime(n.created_at)}</small><button class="btn small admin-open-reward" type="button">Mở yêu cầu đổi thưởng</button></div>
+ </div>`).join('')||'<div class="empty-state">Chưa có yêu cầu đổi thưởng mới.</div>';
+ box?.querySelectorAll('.admin-open-reward').forEach(b=>b.onclick=()=>{
+   document.querySelector('[data-admin-module="rewards"]')?.click();
+   setTimeout(()=>{adminRewards();$('adminRedemptionList')?.scrollIntoView({behavior:'smooth',block:'start'})},80);
+ });
+}
+async function markAdminRewardNotificationsReadV267(){
+ const {error}=await db.rpc('nexora_admin_mark_reward_notifications_read_v267');
+ if(!error)loadAdminRewardNotificationsV267();
+}
+async function refreshAllAdminNotificationsV267(){
+ await Promise.all([loadAdminProofNotificationsV266(),loadAdminRewardNotificationsV267()]);
+}
+async function markAllAdminNotificationsReadV267(){
+ await Promise.all([
+   db.rpc('nexora_admin_mark_proof_notifications_read_v266'),
+   db.rpc('nexora_admin_mark_reward_notifications_read_v267')
+ ]);
+ refreshAllAdminNotificationsV267();
+}
+
+
+async function adminRewards(){
   if(!$r('adminRewardList'))return;
   try{
    const [items,reqs]=await Promise.all([call('nexora_admin_rewards_v2',{p_limit:100}),call('nexora_admin_redemptions_v2',{p_limit:100})]);
@@ -798,7 +799,7 @@ hydrateRankImages();authPage();dashboard();admin();adminEvents();adminProofs();i
    let note='';
    if(b.dataset.status==='rejected'){note=prompt('Lý do từ chối (PTS sẽ được hoàn tự động):')||'';if(!note.trim())return}
    else if(b.dataset.status==='fulfilled'){note=prompt('Ghi chú/mã giao dịch (không bắt buộc):')||''}
-   try{const out=await call('nexora_admin_set_redemption_status',{p_redemption_id:b.dataset.id,p_status:b.dataset.status,p_note:note});notify(out?.message||'Đã cập nhật ✓');await adminRewards();await loadAdminRewardNotificationsV267()}catch(e){notify(e.message,true)}
+   try{const out=await call('nexora_admin_set_redemption_status',{p_redemption_id:b.dataset.id,p_status:b.dataset.status,p_note:note});notify(out?.message||'Đã cập nhật ✓');await adminRewards();if(typeof loadAdminRewardNotificationsV267==='function')await loadAdminRewardNotificationsV267()}catch(e){notify(e.message,true)}
   });
  }
 
