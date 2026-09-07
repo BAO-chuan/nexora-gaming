@@ -136,7 +136,15 @@ hydrateRankImages();authPage();dashboard();admin();adminEvents();adminProofs();p
       if(first)first.scrollIntoView({behavior:'smooth',block:'start'});
     }
   }
-  buttons.forEach(btn=>btn.addEventListener('click',()=>showCategory(btn.dataset.dashboardTab,true)));
+  buttons.forEach(btn=>btn.addEventListener('click',()=>{
+    showCategory(btn.dataset.dashboardTab,true);
+    if(window.matchMedia('(max-width: 979px)').matches) document.body.classList.remove('sidebar-open');
+  }));
+  const sidebarToggle=document.getElementById('sidebarToggle');
+  const sidebarOverlay=document.getElementById('sidebarOverlay');
+  if(sidebarToggle) sidebarToggle.addEventListener('click',()=>document.body.classList.toggle('sidebar-open'));
+  if(sidebarOverlay) sidebarOverlay.addEventListener('click',()=>document.body.classList.remove('sidebar-open'));
+  window.addEventListener('resize',()=>{if(window.innerWidth>=980)document.body.classList.remove('sidebar-open')});
   let saved='overview';
   try{saved=sessionStorage.getItem('nexora_dashboard_category')||'overview'}catch{}
   if(!notes[saved])saved='overview';

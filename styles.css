@@ -246,3 +246,92 @@ html[data-season-rank="master"]{--rank-accent:#ff4b23;--rank-deep:#8b130f}
   .public-rank-badge img{width:72px;height:72px}.public-rank-badge span{display:none}
   .player-rank-visual{padding:13px}.rank-orbit{width:82px;height:82px;flex-basis:82px}.rank-orbit img{width:76px;height:76px}.rank-visual-copy strong{font-size:24px}
 }
+
+/* =========================================================
+   Nexora v2.2.2 — Left Battle Sidebar
+   ========================================================= */
+.dashboard-page .top{z-index:60}
+.top-brand-wrap{display:flex;align-items:center;gap:10px}
+.sidebar-toggle{display:none;width:42px;height:42px;border:1px solid rgba(255,138,24,.42);border-radius:10px;background:#0a1118;color:var(--ff-yellow);font-size:22px;font-weight:900;cursor:pointer}
+.sidebar-overlay{display:none}
+
+@media (min-width:980px){
+  .dashboard-page .dash{max-width:1480px;padding:34px 24px 55px 276px;min-height:calc(100vh - 72px)}
+  .dashboard-page .dashboard-nav-panel{
+    position:fixed;
+    top:92px;
+    left:max(20px,calc((100vw - 1480px)/2 + 20px));
+    width:228px;
+    height:calc(100vh - 114px);
+    margin:0;
+    padding:18px 14px;
+    z-index:40;
+    overflow-y:auto;
+    border-color:rgba(255,138,24,.34)!important;
+    background:linear-gradient(180deg,rgba(14,20,27,.98),rgba(7,11,16,.98))!important;
+    box-shadow:0 18px 46px #0008,0 0 26px rgba(255,138,24,.08)!important;
+  }
+  .dashboard-page .dashboard-nav-panel:before{
+    content:"NEXORA // BATTLE OPS";
+    display:block;
+    padding:5px 7px 14px;
+    color:#6f7c8a;
+    font-size:10px;
+    font-weight:900;
+    letter-spacing:1.5px;
+  }
+  .dashboard-page .dashboard-nav-head{display:block;padding:0 7px 10px;margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,.07)}
+  .dashboard-page .dashboard-nav-head .pill{display:none}
+  .dashboard-page .dashboard-nav-head h2{font-size:1.18rem;margin-top:4px}
+  .dashboard-page .dashboard-tabs{display:flex;flex-direction:column;gap:8px;overflow:visible;padding:0}
+  .dashboard-page .dashboard-tab{
+    width:100%;
+    min-height:48px;
+    text-align:left;
+    padding:12px 13px;
+    border-radius:9px!important;
+    clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px);
+  }
+  .dashboard-page .dashboard-tab.active{transform:translateX(3px);box-shadow:inset 4px 0 0 var(--ff-yellow),0 0 22px rgba(255,138,24,.12)!important}
+  .dashboard-page .dashboard-tab-note{margin-top:16px;padding:12px 9px;border-top:1px solid rgba(255,255,255,.06);font-size:.78rem}
+  .dashboard-page .ff-disclaimer{font-size:.68rem;line-height:1.45;padding:12px 9px 0}
+}
+
+@media (max-width:979px){
+  .sidebar-toggle{display:inline-grid;place-items:center}
+  .dashboard-page .dash{padding-top:24px}
+  .dashboard-page .dashboard-nav-panel{
+    position:fixed!important;
+    top:72px!important;
+    left:0;
+    width:min(82vw,300px);
+    height:calc(100dvh - 72px);
+    margin:0!important;
+    padding:18px 14px!important;
+    z-index:55;
+    overflow-y:auto;
+    transform:translateX(-105%);
+    transition:transform .22s ease;
+    border-radius:0 18px 18px 0!important;
+    background:linear-gradient(180deg,#0c1219,#070b10)!important;
+    box-shadow:18px 0 50px #000b!important;
+  }
+  .dashboard-page.sidebar-open .dashboard-nav-panel{transform:translateX(0)}
+  .dashboard-page .dashboard-tabs{display:flex;flex-direction:column;gap:8px;overflow:visible;padding:0}
+  .dashboard-page .dashboard-tab{width:100%;text-align:left;padding:13px 14px}
+  .dashboard-page .dashboard-nav-head{margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.07)}
+  .dashboard-page .dashboard-tab-note{margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06)}
+  .dashboard-page .sidebar-overlay{display:block;position:fixed;inset:72px 0 0;background:#0009;z-index:50;opacity:0;pointer-events:none;transition:opacity .2s ease;backdrop-filter:blur(2px)}
+  .dashboard-page.sidebar-open .sidebar-overlay{opacity:1;pointer-events:auto}
+  .dashboard-page.sidebar-open{overflow:hidden}
+}
+
+@media (max-width:520px){
+  .top-brand-wrap .brand{font-size:17px}
+  .dashboard-page .top{height:68px;padding:0 12px}
+  .dashboard-page .top nav{gap:8px}
+  .dashboard-page .top nav #navName{display:none}
+  .dashboard-page .top nav .ghost{padding:10px 12px;font-size:12px}
+  .dashboard-page .dashboard-nav-panel{top:68px!important;height:calc(100dvh - 68px)}
+  .dashboard-page .sidebar-overlay{inset:68px 0 0}
+}
