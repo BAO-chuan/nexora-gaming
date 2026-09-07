@@ -1,1 +1,36 @@
-<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Đăng nhập • Nexora Gaming</title><link rel="stylesheet" href="styles.css?v=1"></head><body><header class="top"><a class="brand" href="index.html">NEXORA <span>GAMING</span></a></header><main class="auth-wrap"><section class="auth-card"><div class="tabs"><button id="loginTab" class="active">Đăng nhập</button><button id="registerTab">Đăng ký</button></div><form id="loginForm"><h2>Chào mừng trở lại 👋</h2><label>Email<input id="loginEmail" type="email" required></label><label>Mật khẩu<input id="loginPassword" type="password" minlength="6" required></label><button class="btn full">Đăng nhập</button></form><form id="registerForm" class="hidden"><h2>Tạo tài khoản 🎮</h2><label>Nickname<input id="registerName" maxlength="24" required placeholder="Tên hiển thị"></label><label>Email<input id="registerEmail" type="email" required></label><label>Mật khẩu<input id="registerPassword" type="password" minlength="6" required></label><button class="btn full">Đăng ký miễn phí</button><p class="note">Không sử dụng mật khẩu tài khoản game của bạn.</p></form><p id="authMsg" class="msg"></p></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="app.js?v=1"></script></body></html>
+<!doctype html>
+<html lang="vi"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#070b12"><title>Nexora Gaming • Tài khoản</title>
+<link rel="stylesheet" href="styles.css?v=2686">
+</head><body class="nx-auth-page">
+<main class="nx-auth-shell">
+<a class="nx-auth-brand" href="index.html">NEXORA <strong>GAMING</strong></a>
+<section class="nx-auth-card">
+<div class="nx-auth-kicker">PLAY • CHALLENGE • REWARD</div>
+<div class="auth-tabs nx-auth-tabs"><button id="loginTab" type="button">Đăng nhập</button><button id="registerTab" type="button">Đăng ký</button></div>
+
+<form id="loginForm" class="auth-form nx-auth-form">
+<div class="nx-auth-heading"><h1>Chào mừng trở lại 👋</h1><p>Đăng nhập để tiếp tục hành trình tại Nexora Gaming.</p></div>
+<label>Email<span class="nx-input-wrap"><span class="nx-input-icon">✉</span><input id="loginEmail" type="email" autocomplete="email" placeholder="Nhập email của bạn" required></span></label>
+<label>Mật khẩu<span class="nx-input-wrap"><span class="nx-input-icon">🔒</span><input id="loginPassword" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu" required><button class="nx-password-toggle" type="button" data-password-target="loginPassword">👁</button></span></label>
+<div class="nx-auth-options"><span></span><button id="forgotPasswordBtn" class="nx-forgot" type="button">Quên mật khẩu?</button></div>
+<button class="btn nx-login-btn" type="submit">ĐĂNG NHẬP <span>→</span></button>
+</form>
+
+<form id="registerForm" class="auth-form nx-auth-form hidden">
+<div class="nx-auth-heading"><h1>Gia nhập Nexora 🎮</h1><p>Tạo tài khoản miễn phí và bắt đầu thử thách.</p></div>
+<label>Tên hiển thị<span class="nx-input-wrap"><span class="nx-input-icon">🎮</span><input id="registerName" maxlength="30" placeholder="Tên game thủ" required></span></label>
+<label>Email<span class="nx-input-wrap"><span class="nx-input-icon">✉</span><input id="registerEmail" type="email" autocomplete="email" placeholder="Email của bạn" required></span></label>
+<label>Mật khẩu<span class="nx-input-wrap"><span class="nx-input-icon">🔒</span><input id="registerPassword" type="password" autocomplete="new-password" minlength="6" placeholder="Tối thiểu 6 ký tự" required><button class="nx-password-toggle" type="button" data-password-target="registerPassword">👁</button></span></label>
+<button class="btn nx-login-btn" type="submit">TẠO TÀI KHOẢN <span>→</span></button>
+</form>
+
+<p id="authMsg" class="form-msg"></p>
+<div class="nx-auth-trust"><span>🛡️ Bảo mật</span><span>⚡ Nhanh chóng</span><span>👥 Cộng đồng</span></div>
+<p class="nx-auth-safety">Nexora không bao giờ yêu cầu mật khẩu game hoặc mã OTP của bạn.</p>
+</section>
+<footer class="nx-auth-footer">NEXORA GAMING • PLAY TODAY, BRIGHTER TOMORROW</footer>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="app.js?v=2686"></script>
+</body></html>

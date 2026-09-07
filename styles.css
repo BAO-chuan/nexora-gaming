@@ -430,55 +430,18 @@ html[data-season-rank="master"]{--rank-accent:#ff4b23;--rank-deep:#8b130f}
 .admin-notification-group+.admin-notification-group{margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08)}
 .reward-notif,.admin-reward-notif{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}
 
-
-/* =========================================================
-   Nexora v2.6.8 — Support & Issue Report
-   ========================================================= */
-.support-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(260px,.65fr);gap:18px}
-.support-form,.support-contact-card{border:1px solid rgba(255,255,255,.09);background:rgba(8,12,18,.72);border-radius:18px;padding:18px}
-.support-form{display:grid;gap:13px}
-.support-form label{display:grid;gap:7px;font-weight:700}
-.support-form small{font-weight:500;opacity:.7}
-.support-form input,.support-form select,.support-form textarea,.support-admin-reply input,.support-reply-form input,#adminSupportFilter{width:100%;box-sizing:border-box}
-.support-form textarea{min-height:130px;resize:vertical}
-.support-contact-card h3,.support-form h3{margin-top:0}
-.support-rule{display:grid;gap:5px;padding:13px 0;border-top:1px solid rgba(255,255,255,.08)}
-.support-rule span{opacity:.78;line-height:1.55}
-.support-ticket-card{border:1px solid rgba(255,255,255,.09);background:rgba(8,12,18,.7);border-radius:18px;padding:16px;margin-top:12px}
-.support-ticket-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
-.support-ticket-head b{display:block}
-.support-ticket-head small{display:block;margin-top:5px;opacity:.68}
-.support-status{white-space:nowrap;border-radius:999px;padding:6px 10px;font-size:.78rem;font-weight:800;border:1px solid rgba(255,255,255,.12)}
-.support-status.pending{background:rgba(255,179,0,.12)}
-.support-status.processing{background:rgba(32,230,255,.11)}
-.support-status.resolved{background:rgba(45,210,120,.12)}
-.support-status.closed{opacity:.62}
-.support-thread{display:grid;gap:8px;margin-top:14px}
-.support-message{display:grid;gap:4px;border-radius:13px;padding:10px 12px;background:rgba(255,255,255,.045)}
-.support-message.admin{border-left:3px solid #20e6ff}
-.support-message.user{border-left:3px solid #ff9f1a}
-.support-message small{opacity:.55}
-.support-reply-form,.support-admin-reply{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:12px}
-.support-evidence{display:inline-block;margin-top:6px}
-.support-admin-card{margin-bottom:12px}
-@media(max-width:760px){
- .support-grid{grid-template-columns:1fr}
- .support-ticket-head{display:grid}
- .support-reply-form,.support-admin-reply{grid-template-columns:1fr}
-}
-
-
-/* Nexora v2.6.8.2 — User Support History Delete */
-.support-delete-row{
-  display:flex;
-  justify-content:flex-end;
-  margin-top:12px;
-  padding-top:10px;
-  border-top:1px solid rgba(255,255,255,.07);
-}
-.support-delete-ticket{
-  opacity:.82;
-}
-.support-delete-ticket:hover{
-  opacity:1;
-}
+/* Nexora v2.6.8.6 — Auth Redesign */
+.nx-auth-page{min-height:100vh;margin:0;background:radial-gradient(circle at 12% 18%,rgba(255,126,20,.13),transparent 28rem),radial-gradient(circle at 88% 34%,rgba(0,190,255,.10),transparent 30rem),linear-gradient(145deg,#090a0f,#07111d 48%,#05080d);color:#f5f7ff}
+.nx-auth-page:before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:34px 34px;mask-image:linear-gradient(to bottom,transparent,#000 25%,#000 75%,transparent)}
+.nx-auth-shell{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 18px max(32px,env(safe-area-inset-bottom))}
+.nx-auth-brand{font-size:clamp(29px,6vw,46px);font-weight:950;font-style:italic;letter-spacing:2px;color:#fff;text-decoration:none;margin-bottom:28px}.nx-auth-brand strong{color:#ff7d16;text-shadow:0 0 24px rgba(255,125,22,.35)}
+.nx-auth-card{width:min(100%,620px);padding:clamp(22px,5vw,42px);border-radius:30px;background:linear-gradient(145deg,rgba(15,29,48,.97),rgba(5,13,24,.97));border:1px solid rgba(80,151,224,.38);box-shadow:0 28px 90px rgba(0,0,0,.5);position:relative;overflow:hidden}.nx-auth-card:before{content:"";position:absolute;inset:0 0 auto;height:2px;background:linear-gradient(90deg,#ff7d16,transparent 35%,transparent 65%,#18cfff)}
+.nx-auth-kicker{text-align:center;color:#ff9a3d;font-size:12px;font-weight:900;letter-spacing:3px;margin-bottom:18px}
+.nx-auth-tabs{display:grid!important;grid-template-columns:1fr 1fr;background:#050d18!important;border-radius:18px!important;padding:7px!important;margin:0 0 30px!important;gap:7px}.nx-auth-tabs button{border:0!important;border-radius:13px!important;background:transparent!important;color:#8090a8!important;padding:15px 12px!important;font-weight:850!important}.nx-auth-tabs button.active{color:#fff!important;background:linear-gradient(135deg,rgba(255,126,20,.25),rgba(22,54,91,.8))!important;box-shadow:inset 3px 0 #ff7d16}
+.nx-auth-heading h1{font-size:clamp(30px,6vw,44px);margin:0 0 8px;letter-spacing:-1.4px}.nx-auth-heading p{margin:0 0 25px;color:#91a4bf;line-height:1.55}
+.nx-auth-form{display:grid;gap:18px}.nx-auth-form>label{display:grid;gap:9px;color:#9fb0c8;font-weight:750}
+.nx-input-wrap{display:flex;align-items:center;border:1px solid #294a70;border-radius:17px;background:#050d18;transition:.2s;overflow:hidden}.nx-input-wrap:focus-within{border-color:#ff861d;box-shadow:0 0 0 3px rgba(255,126,20,.11),0 0 26px rgba(255,126,20,.08)}
+.nx-input-icon{width:52px;text-align:center;opacity:.8}.nx-input-wrap input{flex:1;min-width:0;border:0!important;outline:0!important;background:transparent!important;color:#fff!important;padding:17px 6px!important;font-size:16px!important;box-shadow:none!important}.nx-password-toggle{width:52px;align-self:stretch;border:0;background:transparent;color:#91a4bf;font-size:17px}
+.nx-auth-options{display:flex;justify-content:space-between;align-items:center}.nx-forgot{border:0;background:transparent;color:#ff9a3d;font-weight:850;padding:8px 0}.nx-login-btn{width:100%;min-height:58px;border-radius:17px!important;font-weight:950!important;letter-spacing:1.4px!important;background:linear-gradient(100deg,#ff9a16,#ff651f)!important;box-shadow:0 12px 30px rgba(255,105,22,.20)}.nx-login-btn span{margin-left:10px;font-size:20px}
+.nx-auth-trust{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:28px;padding-top:22px;border-top:1px solid rgba(148,173,205,.16);color:#9fb0c8;text-align:center;font-size:12px}.nx-auth-safety{text-align:center;color:#71839b;font-size:12px;line-height:1.5;margin:18px 0 0}.nx-auth-footer{margin-top:25px;color:#65758b;font-size:11px;font-weight:800;letter-spacing:2px;text-align:center}
+@media(max-width:520px){.nx-auth-shell{justify-content:flex-start;padding-top:max(34px,env(safe-area-inset-top))}.nx-auth-brand{align-self:flex-start;margin:16px 8px 34px;font-size:29px}.nx-auth-card{border-radius:26px;padding:22px 18px}.nx-auth-heading h1{font-size:34px}.nx-auth-trust{font-size:10px}}
