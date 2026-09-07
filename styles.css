@@ -466,3 +466,19 @@ html[data-season-rank="master"]{--rank-accent:#ff4b23;--rank-deep:#8b130f}
  .support-ticket-head{display:grid}
  .support-reply-form,.support-admin-reply{grid-template-columns:1fr}
 }
+
+
+/* Nexora v2.6.8.2 — User Support History Delete */
+.support-delete-row{
+  display:flex;
+  justify-content:flex-end;
+  margin-top:12px;
+  padding-top:10px;
+  border-top:1px solid rgba(255,255,255,.07);
+}
+.support-delete-ticket{
+  opacity:.82;
+}
+.support-delete-ticket:hover{
+  opacity:1;
+}

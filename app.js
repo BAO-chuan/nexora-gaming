@@ -880,11 +880,26 @@ hydrateRankImages();authPage();dashboard();admin();adminEvents();adminProofs();i
        ${t.evidence_url?`<a class="ghost small support-evidence" href="${escs(t.evidence_url)}" target="_blank" rel="noopener">Mở bằng chứng</a>`:''}
        <div class="support-thread">${(t.messages||[]).map(m=>`<div class="support-message ${m.sender_role==='admin'?'admin':'user'}"><b>${m.sender_role==='admin'?'👨‍💻 Admin':'👤 Bạn'}</b><span>${escs(m.message)}</span><small>${fmt(m.created_at)}</small></div>`).join('')||'<div class="empty-state">Chưa có phản hồi.</div>'}</div>
        ${!['closed'].includes(t.status)?`<form class="support-reply-form" data-id="${t.id}"><input maxlength="1000" placeholder="Phản hồi thêm cho Admin..." required><button class="ghost small">Gửi</button></form>`:''}
+       ${['resolved','closed'].includes(t.status)?`<div class="support-delete-row"><button class="ghost small support-delete-ticket" data-id="${t.id}" data-code="${escs(t.ticket_code)}" type="button">🗑️ Xóa lịch sử</button></div>`:''}
      </article>`).join('')||'<div class="empty-state">Bạn chưa có Ticket hỗ trợ.</div>';
      box.querySelectorAll('.support-reply-form').forEach(f=>f.onsubmit=async e=>{
        e.preventDefault();const input=f.querySelector('input');const msg=input.value.trim();if(!msg)return;
        try{await rpc('nexora_reply_support_ticket_v268',{p_ticket_id:f.dataset.id,p_message:msg});input.value='';await loadMyTickets();toast('Đã gửi phản hồi cho Admin ✓')}
        catch(err){toast(err.message,true)}
+     });
+     box.querySelectorAll('.support-delete-ticket').forEach(b=>b.onclick=async()=>{
+       const code=b.dataset.code||'Ticket này';
+       if(!confirm(`Xóa vĩnh viễn lịch sử ${code}?\n\nTicket, toàn bộ tin nhắn và thông báo liên quan sẽ bị xóa. Thao tác này không thể hoàn tác.`))return;
+       b.disabled=true;
+       try{
+         await rpc('nexora_delete_my_support_ticket_v2682',{p_ticket_id:b.dataset.id});
+         await loadMyTickets();
+         if(typeof loadSupportNotificationsV2681==='function') loadSupportNotificationsV2681();
+         toast(`Đã xóa lịch sử ${code} ✓`);
+       }catch(err){
+         toast(err.message,true);
+         b.disabled=false;
+       }
      });
    }catch(e){box.textContent='Hãy chạy SQL v2.6.8 để bật Support Center. '+e.message}
  }
