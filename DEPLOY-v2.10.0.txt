@@ -1,0 +1,23 @@
+NEXORA GAMING v2.10.0 — CLAN CENTER 2.0
+
+1) Chạy Nexora-Gaming-v2.10.0-Clan-Center-2.0.sql trong Supabase SQL Editor.
+2) Upload/ghi đè đúng 3 file frontend:
+   - clans.html
+   - clan-center.js
+   - clan-center.css
+3) Không cần thay app.js, config.js, styles.css, Tournament hoặc game.
+4) Sau deploy, hard refresh trang Clans.
+
+Tính năng:
+- Tạo Clan + logo/banner/mô tả.
+- Leader / Co-Leader / Member.
+- Xin gia nhập + Leader/Co-Leader duyệt/từ chối.
+- Mời thành viên bằng Nexora public code.
+- Thăng/hạ Co-Leader, kick, rời/giải tán Clan.
+- Clan XP, Clan Level, điểm đóng góp.
+- Clan Missions tuần.
+- Timeline hoạt động Clan.
+- BXH Clan nâng cấp.
+- Tối ưu mobile.
+
+Lưu ý: v2.10.0 dùng bộ bảng Clan v210 riêng để không phá hệ thống Clan cũ. Clan cũ không tự động chuyển dữ liệu sang v210.
