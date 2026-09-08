@@ -1,0 +1,14 @@
+NEXORA GAMING v2.12.3 — APP.JS CACHE HOTFIX
+
+Mục đích:
+- Sửa lỗi Safari/iPhone vẫn dùng app.js cũ do URL app.js?v=2610.
+- Khắc phục lỗi Reward History: "Can't find variable: hiddenHistoryV2687".
+
+Cách deploy:
+1) Upload/ghi đè 9 file HTML trong ZIP lên GitHub.
+2) KHÔNG chạy SQL.
+3) KHÔNG cần thay app.js nếu đã upload app.js từ v2.12.2.
+4) Sau khi GitHub Pages cập nhật, đóng tab cũ và mở lại trang.
+
+Các file chỉ thay query cache app.js?v=2610 -> app.js?v=2123.
+Không thay layout, CSS, database hoặc logic khác.
