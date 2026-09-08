@@ -291,11 +291,42 @@ async function loadAdminSupportNotificationsV2681(){
 }
 async function markAdminSupportNotificationsReadV2681(){const {error}=await db.rpc('nexora_admin_mark_support_notifications_read_v2681');if(!error)loadAdminSupportNotificationsV2681()}
 
+function openAdminNotificationsV2132(){
+ const key='notifications';
+ document.querySelectorAll('.admin-module-tab').forEach(b=>b.classList.toggle('active',b.dataset.adminModule===key));
+ document.querySelectorAll('[data-admin-module-section]').forEach(s=>s.classList.toggle('admin-module-hidden',s.dataset.adminModuleSection!==key));
+ try{sessionStorage.setItem('nexoraAdminModule',key)}catch(e){}
+ const section=document.querySelector('[data-admin-module-section="notifications"]');
+ if(section)setTimeout(()=>section.scrollIntoView({behavior:'smooth',block:'start'}),30);
+ Promise.allSettled([loadAdminProofNotificationsV266(),loadAdminRewardNotificationsV267(),loadAdminSupportNotificationsV2681()]);
+}
+async function markAllAdminNotificationsReadV2132(){
+ const btn=$('markAdminNotificationsRead');
+ if(btn){btn.disabled=true;btn.textContent='Đang đánh dấu...'}
+ try{
+  const results=await Promise.all([
+   db.rpc('nexora_admin_mark_proof_notifications_read_v266'),
+   db.rpc('nexora_admin_mark_reward_notifications_read_v267'),
+   db.rpc('nexora_admin_mark_support_notifications_read_v2681')
+  ]);
+  const failed=results.find(r=>r?.error);
+  if(failed?.error)throw failed.error;
+  await Promise.all([loadAdminProofNotificationsV266(),loadAdminRewardNotificationsV267(),loadAdminSupportNotificationsV2681()]);
+  if(typeof toast==='function')toast('Đã đánh dấu tất cả thông báo Admin là đã đọc ✓');
+ }catch(e){
+  console.error('Mark all admin notifications read:',e);
+  if(typeof toast==='function')toast(e?.message||'Không thể đánh dấu đã đọc.');else alert(e?.message||'Không thể đánh dấu đã đọc.');
+ }finally{
+  if(btn){btn.disabled=false;btn.textContent='Đánh dấu tất cả đã đọc'}
+ }
+}
 function initAdminProofNotificationsV266(){
  if(!$('adminProofBell')&&!$('adminProofNotificationList'))return;
- $('adminProofBell')&&($('adminProofBell').onclick=()=>document.querySelector('[data-admin-module="notifications"]')?.click());
- $('refreshAdminProofNotifications')&&($('refreshAdminProofNotifications').onclick=loadAdminProofNotificationsV266);
- $('markAdminProofNotificationsRead')&&($('markAdminProofNotificationsRead').onclick=markAdminProofNotificationsReadV266);
+ if($('adminProofBell'))$('adminProofBell').onclick=openAdminNotificationsV2132;
+ if($('refreshAdminNotifications'))$('refreshAdminNotifications').onclick=()=>Promise.allSettled([loadAdminProofNotificationsV266(),loadAdminRewardNotificationsV267(),loadAdminSupportNotificationsV2681()]);
+ if($('markAdminNotificationsRead'))$('markAdminNotificationsRead').onclick=markAllAdminNotificationsReadV2132;
+ if($('refreshAdminProofNotifications'))$('refreshAdminProofNotifications').onclick=loadAdminProofNotificationsV266;
+ if($('markAdminProofNotificationsRead'))$('markAdminProofNotificationsRead').onclick=markAdminProofNotificationsReadV266;
  loadAdminProofNotificationsV266();
  loadAdminRewardNotificationsV267();
  loadAdminSupportNotificationsV2681();
