@@ -1,0 +1,12 @@
+NEXORA GAMING v2.10.1.1 — REWARD VISIBILITY HOTFIX
+
+Sửa lỗi bố cục của v2.10.1:
+- Khôi phục Thông báo Nexora của Admin ở vị trí ưu tiên phía trên.
+- Card Đổi thưởng nổi bật được chuyển xuống ngay SAU khung Thông báo Nexora.
+- Không thay đổi hệ thống thông báo, app.js, SQL, Tournament, Clan hay Reward Center.
+
+Upload/ghi đè:
+1) dashboard.html
+2) nexora-hub.css
+
+Sau đó hard refresh / mở lại GitHub Pages.
