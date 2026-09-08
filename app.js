@@ -1184,11 +1184,40 @@ document.addEventListener('DOMContentLoaded',initSiteAnnouncementsV269);
   });
  }
 
+ let adminRewardItems=[];
+
+ function resetAdminRewardEditor(){
+  const form=$r('adminRewardForm');
+  if(!form)return;
+  form.reset();
+  $r('adminRewardEditId').value='';
+  $r('adminRewardCost').value=1000;
+  $r('adminRewardStock').value=-1;
+  if($r('adminRewardSubmitBtn'))$r('adminRewardSubmitBtn').textContent='Thêm phần thưởng';
+  $r('adminRewardCancelEdit')?.classList.add('hidden');
+ }
+
+ function startAdminRewardEdit(id){
+  const x=adminRewardItems.find(r=>String(r.id)===String(id));
+  if(!x)return notify('Không tìm thấy phần thưởng để sửa.',true);
+  $r('adminRewardEditId').value=x.id;
+  $r('adminRewardTitle').value=x.title||'';
+  $r('adminRewardType').value=x.reward_type||'diamond';
+  $r('adminRewardCost').value=Number(x.points_cost||0);
+  $r('adminRewardValue').value=x.display_value||'';
+  $r('adminRewardStock').value=Number(x.stock??-1);
+  $r('adminRewardDescription').value=x.description||'';
+  if($r('adminRewardSubmitBtn'))$r('adminRewardSubmitBtn').textContent='💾 Lưu thay đổi';
+  $r('adminRewardCancelEdit')?.classList.remove('hidden');
+  $r('adminRewardForm')?.scrollIntoView({behavior:'smooth',block:'start'});
+ }
+
  async function adminRewards(){
   if(!$r('adminRewardList'))return;
   try{
    const [items,reqs]=await Promise.all([call('nexora_admin_rewards_v2',{p_limit:100}),call('nexora_admin_redemptions_v2',{p_limit:100})]);
-   $r('adminRewardList').innerHTML=(items||[]).map(x=>`<div class="admin-v25-card"><b>${typeText(x.reward_type)} • ${esc(x.display_value||x.title)}</b><div class="admin-v25-meta"><span>${Number(x.points_cost).toLocaleString('vi-VN')} PTS</span><span>Kho: ${x.stock===-1?'∞':x.stock}</span><span>${x.is_active?'🟢 Đang bán':'⚫ Đã ẩn'}</span></div><small>${esc(x.title)}</small><div class="admin-v25-actions"><button class="ghost v26-toggle-reward" data-id="${x.id}" data-active="${x.is_active?'0':'1'}">${x.is_active?'Ẩn':'Hiện'}</button><button class="ghost admin-danger v26-delete-reward" data-id="${x.id}">Xóa</button></div></div>`).join('')||'Chưa có phần thưởng.';
+   adminRewardItems=items||[];
+   $r('adminRewardList').innerHTML=adminRewardItems.map(x=>`<div class="admin-v25-card"><b>${typeText(x.reward_type)} • ${esc(x.display_value||x.title)}</b><div class="admin-v25-meta"><span>${Number(x.points_cost).toLocaleString('vi-VN')} PTS</span><span>Kho: ${x.stock===-1?'∞':x.stock}</span><span>${x.is_active?'🟢 Đang bán':'⚫ Đã ẩn'}</span></div><small>${esc(x.title)}</small><div class="admin-v25-actions"><button class="ghost v2133-edit-reward" data-id="${x.id}">✏️ Sửa</button><button class="ghost v26-toggle-reward" data-id="${x.id}" data-active="${x.is_active?'0':'1'}">${x.is_active?'Ẩn':'Hiện'}</button><button class="ghost admin-danger v26-delete-reward" data-id="${x.id}">Xóa</button></div></div>`).join('')||'Chưa có phần thưởng.';
    $r('adminRedemptionList').innerHTML=(reqs||[]).map(x=>{
     const d=x.recipient_data||{};
     const recipient=x.reward_type==='diamond'
@@ -1215,6 +1244,7 @@ document.addEventListener('DOMContentLoaded',initSiteAnnouncementsV269);
  const formatRecipient=(t,d={})=>t==='diamond'?`UID game: ${d.game_uid||'—'}`:t==='game_card'?`Loại thẻ: ${d.provider||'—'} • Ghi chú: ${d.note||'—'}`:`Ngân hàng: ${d.bank_name||'—'} • STK: ${d.account_number||'—'} • Chủ TK: ${d.account_holder||'—'}`;
 
  function bindAdmin(){
+  document.querySelectorAll('.v2133-edit-reward').forEach(b=>b.onclick=()=>startAdminRewardEdit(b.dataset.id));
   document.querySelectorAll('.v26-toggle-reward').forEach(b=>b.onclick=async()=>{try{await call('nexora_admin_set_reward_active',{p_reward_id:b.dataset.id,p_active:b.dataset.active==='1'});await adminRewards()}catch(e){notify(e.message,true)}});
   document.querySelectorAll('.v26-delete-reward').forEach(b=>b.onclick=async()=>{if(!confirm('Xóa phần thưởng này? Các yêu cầu cũ vẫn được giữ.'))return;try{await call('nexora_admin_delete_reward',{p_reward_id:b.dataset.id});await adminRewards()}catch(e){notify(e.message,true)}});
   document.querySelectorAll('.v26-status').forEach(b=>b.onclick=async()=>{
@@ -1265,21 +1295,24 @@ document.addEventListener('DOMContentLoaded',initSiteAnnouncementsV269);
   if($r('adminRewardList')){
    adminRewards();
    $r('refreshAdminRewards')?.addEventListener('click',adminRewards);
+   $r('adminRewardCancelEdit')?.addEventListener('click',resetAdminRewardEditor);
    $r('adminRewardForm')?.addEventListener('submit',async e=>{
     e.preventDefault();
     try{
-     const out=await call('nexora_admin_create_reward_v2',{
+     const editId=$r('adminRewardEditId')?.value||'';
+     const payload={
       p_title:$r('adminRewardTitle').value.trim(),
       p_reward_type:$r('adminRewardType').value,
       p_points_cost:+$r('adminRewardCost').value,
       p_stock:+$r('adminRewardStock').value,
       p_description:$r('adminRewardDescription').value.trim(),
       p_display_value:$r('adminRewardValue').value.trim()
-     });
-     notify(out?.message||'Đã thêm phần thưởng ✓');
-     e.target.reset();
-     $r('adminRewardCost').value=1000;
-     $r('adminRewardStock').value=-1;
+     };
+     const out=editId
+      ?await call('nexora_admin_update_reward_v2133',{p_reward_id:editId,...payload})
+      :await call('nexora_admin_create_reward_v2',payload);
+     notify(out?.message||(editId?'Đã cập nhật phần thưởng ✓':'Đã thêm phần thưởng ✓'));
+     resetAdminRewardEditor();
      await adminRewards();
     }catch(err){notify(err.message,true)}
    });
