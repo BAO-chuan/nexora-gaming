@@ -1,0 +1,15 @@
+NEXORA GAMING v2.12.4 — Reward History + Dashboard Order Hotfix
+
+Upload/ghi đè 4 file:
+- app.js
+- rewards.html
+- dashboard.html
+- nexora-hub.css
+
+KHÔNG chạy SQL. KHÔNG sửa config.js.
+
+Fix:
+- Sửa lỗi Reward History: hiddenHistoryV2687 nằm sai scope.
+- Khôi phục thứ tự Dashboard: Thông báo Admin → Lynkora → Reward → Khu vực riêng.
+- Khôi phục Reward spotlight và HOT card.
+- Bump cache app.js/nexora-hub.css để Safari tải bản mới.

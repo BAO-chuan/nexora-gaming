@@ -960,6 +960,33 @@ document.addEventListener('DOMContentLoaded',initSiteAnnouncementsV269);
  const typeHint=t=>({diamond:'Chọn số kim cương bạn muốn nhận.',game_card:'Chọn mệnh giá thẻ game bạn muốn đổi.',cash:'Chọn mức tiền mặt muốn nhận qua ngân hàng.'}[t]||'Chọn gói bạn muốn đổi bằng Nexora PTS.');
  const notify=(text,bad=false)=>{const e=$r('dashMsg')||$r('adminMsg');if(e){e.textContent=text;e.style.color=bad?'#ff6b7a':'#20e6ff'}else alert(text)};
 
+ // v2.12.4: Reward Center chạy trong IIFE riêng, nên cần helper lịch sử riêng trong scope này.
+ let rewardHiddenHistoryV2687=null;
+ async function hiddenHistoryV2687(force=false){
+  if(rewardHiddenHistoryV2687&&!force)return rewardHiddenHistoryV2687;
+  try{
+   const rows=await call('nexora_my_hidden_history_v2687');
+   rewardHiddenHistoryV2687=new Set((rows||[]).map(x=>`${x.history_type}|${x.history_key}`));
+   return rewardHiddenHistoryV2687;
+  }catch(e){console.warn('Reward hidden history:',e);return new Set()}
+ }
+ function isHistoryHiddenV2687(set,type,key){return set.has(`${type}|${key}`)}
+ async function hideRewardHistoryItemV2687(type,key,label,reload){
+  if(!confirm(`Xóa ${label||'mục này'} khỏi lịch sử của bạn?\n\nThao tác này chỉ ẩn mục khỏi tài khoản của bạn. Dữ liệu hệ thống vẫn được giữ an toàn.`))return;
+  try{
+   const out=await call('nexora_hide_history_item_v2687',{p_history_type:type,p_history_key:key});
+   rewardHiddenHistoryV2687=null;
+   if(typeof reload==='function')await reload();
+   notify(out?.message||'Đã xóa khỏi lịch sử ✓');
+  }catch(e){notify(e.message||'Không thể xóa khỏi lịch sử.',true)}
+ }
+ function bindHistoryDeleteV2687(container,reload){
+  if(!container)return;
+  container.querySelectorAll('.user-history-delete-v2687').forEach(b=>b.onclick=()=>hideRewardHistoryItemV2687(
+   b.dataset.historyType,b.dataset.historyKey,b.dataset.historyLabel||'mục này',reload
+  ));
+ }
+
  let rewards=[];
  let activeRewardFilter='diamond';
  let selectedReward=null;
