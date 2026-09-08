@@ -565,8 +565,21 @@ async function markProofNotificationsReadV266(){
  if(!error)loadProofNotificationsV266();
 }
 function openUserProofNotificationsV266(){
- document.querySelector('[data-dashboard-tab="community"]')?.click();
- setTimeout(()=>document.querySelector('[data-module-tab="notifications"]')?.click(),70);
+ // v2.13.1: Dashboard mới dùng Modular Hub và các module cũ bị ẩn bằng
+ // legacy-module-hidden, vì vậy nút chuông không thể mở tab Community cũ nữa.
+ // Mở trực tiếp Notification Center của User, không ảnh hưởng Web Push.
+ const center=document.querySelector('.notification-hub');
+ if(!center)return;
+ center.classList.remove('legacy-module-hidden','dashboard-category-hidden','dashboard-module-hidden','hidden');
+ center.style.removeProperty('display');
+ Promise.allSettled([
+   typeof loadNotifications==='function'?loadNotifications():Promise.resolve(),
+   typeof loadProofNotificationsV266==='function'?loadProofNotificationsV266():Promise.resolve(),
+   typeof loadRewardNotificationsV267==='function'?loadRewardNotificationsV267():Promise.resolve(),
+   typeof loadSupportNotificationsV2681==='function'?loadSupportNotificationsV2681():Promise.resolve()
+ ]).finally(()=>{
+   requestAnimationFrame(()=>center.scrollIntoView({behavior:'smooth',block:'start'}));
+ });
 }
 
 async function loadRewardNotificationsV267(){
