@@ -392,6 +392,7 @@ function showProofForm(type,id,title,points,user){
      if(error)throw error;if(!data?.ok)return msg('dashMsg',data?.message||'Không thể gửi bằng chứng.',true);
      window.sessionStorage.removeItem('nexora_last_media_url');
      msg('dashMsg',data.message||'Đã gửi bằng chứng');
+     if(window.NEXORA_PUSH) window.NEXORA_PUSH.notifyAdmins({event:'proof_submission',challengeType:type,challengeTitle:title||'Challenge',points:Number(points||0)});
      if(type==='random')await loadRandomAcceptance(user);
      loadProofs(user);loadProofNotificationsV266();
    }catch(err){msg('dashMsg',err?.message||'Không thể gửi bằng chứng.',true)}
@@ -1075,6 +1076,9 @@ document.addEventListener('DOMContentLoaded',initSiteAnnouncementsV269);
   if(btn)btn.disabled=true;
   try{
    const out=await call('nexora_redeem_reward',{p_reward_id:selectedReward.id,p_recipient:recipient});
+   if(out?.ok!==false && window.NEXORA_PUSH?.notifyAdmins){
+    window.NEXORA_PUSH.notifyAdmins({event:'reward_request',rewardType:selectedReward.reward_type,rewardLabel:selectedReward.display_value||selectedReward.title||'Phần thưởng',pointsCost:Number(selectedReward.points_cost||0)});
+   }
    notify(out?.message||'Đã gửi yêu cầu đổi thưởng ✓',!out?.ok);
    resetSelection();
    await loadShop();
@@ -1274,7 +1278,7 @@ document.addEventListener('DOMContentLoaded',initSiteAnnouncementsV269);
      </article>`).join('')||'<div class="empty-state">Bạn chưa có Ticket hỗ trợ.</div>';
      box.querySelectorAll('.support-reply-form').forEach(f=>f.onsubmit=async e=>{
        e.preventDefault();const input=f.querySelector('input');const msg=input.value.trim();if(!msg)return;
-       try{await rpc('nexora_reply_support_ticket_v268',{p_ticket_id:f.dataset.id,p_message:msg});input.value='';await loadMyTickets();toast('Đã gửi phản hồi cho Admin ✓')}
+       try{await rpc('nexora_reply_support_ticket_v268',{p_ticket_id:f.dataset.id,p_message:msg});if(window.NEXORA_PUSH)window.NEXORA_PUSH.notifyAdmins({event:'support_reply',ticketId:f.dataset.id});input.value='';await loadMyTickets();toast('Đã gửi phản hồi cho Admin ✓')}
        catch(err){toast(err.message,true)}
      });
      box.querySelectorAll('.support-delete-ticket').forEach(b=>b.onclick=async()=>{
@@ -1305,6 +1309,7 @@ document.addEventListener('DOMContentLoaded',initSiteAnnouncementsV269);
        p_evidence_url:$s('supportEvidenceUrl').value.trim()||null
      });
      e.target.reset(); await loadMyTickets();
+     if(window.NEXORA_PUSH) window.NEXORA_PUSH.notifyAdmins({event:'support_ticket',ticketCode:out?.ticket_code||'',category:$s('supportCategory')?.value||'',subject:$s('supportSubject')?.value?.trim()||''});
      toast(`Đã gửi Ticket ${out?.ticket_code||''} cho Admin ✓`);
      document.querySelector('[data-module-tab="my-tickets"]')?.click();
    }catch(err){toast(err.message,true)}
@@ -1493,6 +1498,9 @@ document.addEventListener('DOMContentLoaded',initSiteAnnouncementsV269);
  async function adminNotify(userId,title,body,url='./dashboard.html',tag='nexora-update'){
    if(!userId)return;try{await invoke({action:'admin_send',userId,title,body,url,tag})}catch(e){console.warn('Nexora Web Push admin send:',e)}
  }
- window.NEXORA_PUSH={adminNotify,syncUI};
+ async function notifyAdmins(eventData={}){
+   try{return await invoke({action:'notify_admins',...eventData})}catch(e){console.warn('Nexora Web Push notify admins:',e);return null}
+ }
+ window.NEXORA_PUSH={adminNotify,notifyAdmins,syncUI};
  document.addEventListener('DOMContentLoaded',()=>{el('enablePushBtn')?.addEventListener('click',enable);el('disablePushBtn')?.addEventListener('click',disable);el('testPushBtn')?.addEventListener('click',test);if(el('pushCenterPanel'))syncUI().catch(e=>{console.warn('Push init:',e);status('CHƯA CẤU HÌNH','off','Web Push chưa sẵn sàng. Hãy hoàn tất SQL và Edge Function v2.6.10.')})});
 })();
