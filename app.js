@@ -960,34 +960,6 @@ document.addEventListener('DOMContentLoaded',initSiteAnnouncementsV269);
  const typeHint=t=>({diamond:'Chọn số kim cương bạn muốn nhận.',game_card:'Chọn mệnh giá thẻ game bạn muốn đổi.',cash:'Chọn mức tiền mặt muốn nhận qua ngân hàng.'}[t]||'Chọn gói bạn muốn đổi bằng Nexora PTS.');
  const notify=(text,bad=false)=>{const e=$r('dashMsg')||$r('adminMsg');if(e){e.textContent=text;e.style.color=bad?'#ff6b7a':'#20e6ff'}else alert(text)};
 
- // v2.7.1.2 hotfix: Reward Center is a separate IIFE, so it needs
- // its own history helpers instead of referencing private helpers above.
- let rewardHiddenHistoryV2687=null;
- async function rewardHiddenHistory(force=false){
-  if(rewardHiddenHistoryV2687&&!force)return rewardHiddenHistoryV2687;
-  const c=db();if(!c)return new Set();
-  const {data,error}=await c.rpc('nexora_my_hidden_history_v2687');
-  if(error){console.warn('nexora_my_hidden_history_v2687',error);return new Set()}
-  rewardHiddenHistoryV2687=new Set((data||[]).map(x=>`${x.history_type}|${x.history_key}`));
-  return rewardHiddenHistoryV2687;
- }
- function rewardHistoryHidden(set,type,key){return set.has(`${type}|${key}`)}
- async function rewardHideHistory(type,key,label,reload){
-  if(!confirm(`Xóa ${label||'mục này'} khỏi lịch sử của bạn?\n\nThao tác này chỉ ẩn mục khỏi tài khoản của bạn. Dữ liệu hệ thống cần cho PTS, đổi thưởng và kiểm tra Admin vẫn được giữ an toàn.`))return;
-  const c=db();if(!c)return notify('Supabase chưa sẵn sàng.',true);
-  const {data,error}=await c.rpc('nexora_hide_history_item_v2687',{p_history_type:type,p_history_key:key});
-  if(error)return notify(error.message||'Không thể xóa khỏi lịch sử.',true);
-  rewardHiddenHistoryV2687=null;
-  if(typeof reload==='function')await reload();
-  notify(data?.message||'Đã xóa khỏi lịch sử ✓');
- }
- function bindRewardHistoryDelete(container,reload){
-  if(!container)return;
-  container.querySelectorAll('.user-history-delete-v2687').forEach(b=>b.onclick=()=>rewardHideHistory(
-   b.dataset.historyType,b.dataset.historyKey,b.dataset.historyLabel||'mục này',reload
-  ));
- }
-
  let rewards=[];
  let activeRewardFilter='diamond';
  let selectedReward=null;
@@ -1015,7 +987,7 @@ document.addEventListener('DOMContentLoaded',initSiteAnnouncementsV269);
   box.innerHTML=list.map(x=>`
     <button class="reward-denomination-card" type="button" data-id="${x.id}">
       <span class="reward-denomination-value">${esc(x.display_value||x.title)}</span>
-      <span class="reward-denomination-cost">${rewardIcon(x.reward_type)} <b>${Number(x.points_cost).toLocaleString('vi-VN')} PTS</b></span>
+      <span class="reward-denomination-cost"><b>${Number(x.points_cost).toLocaleString('vi-VN')} PTS</b></span>
       <span class="reward-denomination-stock">${x.stock===-1?'Còn quà':x.stock>0?`Còn ${x.stock}`:'Hết quà'}</span>
     </button>
   `).join('')||'<div class="empty-state">Hiện chưa có gói phù hợp.</div>';
@@ -1092,8 +1064,8 @@ document.addEventListener('DOMContentLoaded',initSiteAnnouncementsV269);
   const box=$r('myRedemptionList');if(!box)return;
   try{
    const allRows=await call('nexora_my_redemptions_v2',{p_limit:100});
-   const hidden=await rewardHiddenHistory();
-   const rows=(allRows||[]).filter(x=>!rewardHistoryHidden(hidden,'reward_redemption',String(x.id)));
+   const hidden=await hiddenHistoryV2687();
+   const rows=(allRows||[]).filter(x=>!isHistoryHiddenV2687(hidden,'reward_redemption',String(x.id)));
    box.innerHTML=rows.map(x=>{
     const f=x.fulfillment||{};
     const delivered=x.status==='fulfilled'&&x.reward_type==='game_card'
@@ -1105,7 +1077,7 @@ document.addEventListener('DOMContentLoaded',initSiteAnnouncementsV269);
     const canDelete=['fulfilled','rejected'].includes(x.status);
     return `<div class="redemption-row"><div><b>${esc(x.display_value||x.reward_title)}</b><small>${typeText(x.reward_type)} • ${Number(x.points_cost).toLocaleString('vi-VN')} PTS</small></div><span class="redemption-status ${esc(x.status)}">${statusText(x.status)}</span>${delivered}${x.admin_note?`<p><b>Admin:</b> ${esc(x.admin_note)}</p>`:''}${canDelete?`<button class="ghost small user-history-delete-v2687" data-history-type="reward_redemption" data-history-key="${esc(String(x.id))}" data-history-label="lịch sử đổi thưởng này" type="button">🗑️ Xóa lịch sử</button>`:''}</div>`;
    }).join('')||'<div class="empty-state">Bạn chưa có lịch sử đổi thưởng đang hiển thị.</div>';
-   bindRewardHistoryDelete(box,loadMine);
+   bindHistoryDeleteV2687(box,loadMine);
   }catch(e){box.textContent='Hãy chạy SQL v2.6.2. '+e.message}
  }
 
