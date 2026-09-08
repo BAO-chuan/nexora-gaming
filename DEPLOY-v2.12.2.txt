@@ -1,0 +1,23 @@
+NEXORA GAMING v2.12.2 — FULL UI RECOVERY HOTFIX
+
+Mục tiêu: sửa lỗi giao diện hàng loạt sau v2.12.0/v2.12.1.
+
+Upload/ghi đè 4 file:
+- index.html
+- styles.css
+- app.js
+- landing-footer.css
+
+KHÔNG chạy SQL.
+KHÔNG sửa config.js.
+KHÔNG thay các file Profile/Clan/Tournament/Reward khác.
+
+Sau deploy:
+1. Đợi GitHub Pages cập nhật 1-2 phút.
+2. Mở tab riêng tư hoặc xóa cache Safari.
+3. Kiểm tra Dashboard, Challenges, Rewards, Profile.
+
+Khôi phục:
+- CSS đầy đủ đến Web Push v2.6.10 (Reward Center, Challenge, Dashboard, thông báo, mobile...).
+- app.js ổn định hiện tại + Reward PTS icon fix.
+- Landing/Footer v2.12 chạy tách riêng qua landing-footer.css.
