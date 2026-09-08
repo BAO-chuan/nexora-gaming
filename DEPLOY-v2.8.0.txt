@@ -1,0 +1,15 @@
+NEXORA GAMING v2.8.0 — TOURNAMENT CENTER 2.0
+
+1. Supabase SQL Editor: chạy toàn bộ Nexora-Gaming-v2.8.0-Tournament-Center-2.0.sql
+2. GitHub: upload/replace đúng 7 file web:
+   - admin.html
+   - tournaments.html
+   - tournament.html (mới)
+   - tournament-center.css (mới)
+   - tournament-center.js (mới)
+   - tournament-detail.js (mới)
+   - admin-tournament-center.js (mới)
+3. Không upload file SQL lên website.
+4. Test: Admin > Tournament > tạo Solo > công bố > User đăng ký > Admin xem người chơi > tạo Bracket > chọn người thắng > kết thúc giải.
+
+Không thay app.js. Không thay Web Push / Edge Function.
