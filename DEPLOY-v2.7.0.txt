@@ -1,0 +1,14 @@
+NEXORA GAMING v2.7.0 — MODULAR PAGES
+
+UPLOAD TO GITHUB (changed/new files only):
+- dashboard.html
+- events.html
+- tournaments.html
+- clans.html
+- nexora-hub.css
+- nexora-hub.js
+
+NO SQL. NO EDGE FUNCTION CHANGE. NO app.js CHANGE.
+
+After upload: open dashboard.html, then test Events, Giải đấu, Clans.
+Old Event/Tournament/Clan DOM remains hidden in Dashboard only for compatibility with app.js v2.6.10. User-facing access is moved to separate pages.
