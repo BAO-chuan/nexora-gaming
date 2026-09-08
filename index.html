@@ -3,489 +3,124 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#06130f">
-  <title>NEXORA Arena</title>
-  <link rel="stylesheet" href="styles.css?v=25">
-  <link rel="stylesheet" href="menu.css?v=2">
+  <meta name="theme-color" content="#0b0d12">
+  <title>Nexora Gaming</title>
+  <meta name="description" content="Nexora Gaming — cộng đồng game thủ với hồ sơ Nexora, Clan, giải đấu, nhiệm vụ và phần thưởng.">
+  <link rel="stylesheet" href="styles.css?v=2610">
+  <link rel="stylesheet" href="landing-footer.css?v=2121">
+  <link rel="manifest" href="manifest.webmanifest">
 </head>
-<body>
-  <header class="topbar">
-    <div class="brand"><span class="brand-mark">N</span><span>NEXORA</span></div>
-    <div class="top-actions">
-      <div id="walletChip" class="wallet-chip hidden"><span>NXC</span><strong id="headerBalance">0</strong></div>
-      <span id="sessionBadge" class="session-badge">Khách</span>
-      <button id="logoutBtn" class="icon-btn hidden" type="button">↗</button>
-    </div>
+<body class="nx-home-page">
+  <header class="nx-home-header">
+    <a class="nx-home-brand" href="index.html" aria-label="Nexora Gaming">
+      <span class="nx-home-logo">N</span>
+      <span><b>NEXORA</b><small>GAMING</small></span>
+    </a>
+    <a class="nx-home-dashboard" href="dashboard.html">Dashboard</a>
   </header>
 
-  <main>
-    <div class="connection-bar"><span id="statusDot" class="status-dot"></span><span id="connectionStatus">Đang kiểm tra Supabase...</span></div>
-
-    <section id="authArea" class="auth-wrap">
-      <div class="auth-card panel">
-        <h1>Chào mừng đến NEXORA</h1>
-        <p class="muted">Đăng nhập để vào Arena và sử dụng NXC ảo.</p>
-        <div class="tabs">
-          <button id="loginTab" class="tab active" type="button">Đăng nhập</button>
-          <button id="signupTab" class="tab" type="button">Tạo tài khoản</button>
+  <main class="nx-home-main">
+    <section class="nx-auth-section" aria-labelledby="nxAuthTitle">
+      <div class="nx-auth-visual">
+        <span class="nx-kicker">NEXORA COMMUNITY</span>
+        <h1 id="nxAuthTitle">Chơi. Kết nối.<br><em>Chinh phục.</em></h1>
+        <p>Tạo Nexora ID, kết nối bạn bè, tham gia Clan và Tournament, hoàn thành nhiệm vụ để xây dựng hồ sơ game thủ của bạn.</p>
+        <div class="nx-feature-pills" aria-label="Tính năng Nexora">
+          <span>🪪 Nexora ID</span><span>🛡️ Clan</span><span>🏆 Tournament</span><span>🎁 Reward</span>
         </div>
-        <form id="loginForm" class="auth-form">
-          <label>Email<input id="loginEmail" type="email" required autocomplete="email"></label>
-          <label>Mật khẩu<input id="loginPassword" type="password" required minlength="6" autocomplete="current-password"></label>
-          <button class="btn primary" type="submit">Vào Arena</button>
+      </div>
+
+      <div class="nx-auth-card">
+        <div class="nx-auth-card-head">
+          <span class="nx-kicker">PLAYER ACCESS</span>
+          <h2>Chào mừng đến Nexora</h2>
+          <p>Đăng nhập hoặc tạo tài khoản miễn phí để bắt đầu.</p>
+        </div>
+
+        <div class="nx-auth-tabs" role="tablist" aria-label="Đăng nhập hoặc đăng ký">
+          <button id="loginTab" class="active" type="button">Đăng nhập</button>
+          <button id="registerTab" type="button">Tạo tài khoản</button>
+        </div>
+
+        <div id="authReferralBanner" class="nx-referral-banner hidden"></div>
+
+        <form id="loginForm" class="nx-auth-form">
+          <label>Email
+            <div class="nx-input-wrap"><span>✉</span><input id="loginEmail" type="email" required autocomplete="email" placeholder="Email của bạn"></div>
+          </label>
+          <label>Mật khẩu
+            <div class="nx-input-wrap"><span>🔒</span><input id="loginPassword" type="password" required minlength="6" autocomplete="current-password" placeholder="Mật khẩu"><button class="nx-password-toggle" data-password-target="loginPassword" type="button" aria-label="Hiện mật khẩu">👁</button></div>
+          </label>
+          <div class="nx-auth-helper"><span></span><button id="forgotPasswordBtn" type="button">Quên mật khẩu?</button></div>
+          <button class="nx-auth-submit" type="submit">VÀO NEXORA <span>→</span></button>
         </form>
-        <form id="signupForm" class="auth-form hidden">
-          <label>Username<input id="signupUsername" required minlength="3" maxlength="24"></label>
-          <label>Email<input id="signupEmail" type="email" required autocomplete="email"></label>
-          <label>Mật khẩu<input id="signupPassword" type="password" required minlength="6" autocomplete="new-password"></label>
-          <button class="btn gold" type="submit">Tạo tài khoản</button>
+
+        <form id="registerForm" class="nx-auth-form hidden">
+          <label>Tên hiển thị
+            <div class="nx-input-wrap"><span>👤</span><input id="registerName" type="text" required minlength="2" maxlength="24" autocomplete="nickname" placeholder="Tên game thủ"></div>
+          </label>
+          <label>Email
+            <div class="nx-input-wrap"><span>✉</span><input id="registerEmail" type="email" required autocomplete="email" placeholder="Email của bạn"></div>
+          </label>
+          <label>Mật khẩu
+            <div class="nx-input-wrap"><span>🔒</span><input id="registerPassword" type="password" required minlength="6" autocomplete="new-password" placeholder="Ít nhất 6 ký tự"><button class="nx-password-toggle" data-password-target="registerPassword" type="button" aria-label="Hiện mật khẩu">👁</button></div>
+          </label>
+          <button class="nx-auth-submit" type="submit">TẠO TÀI KHOẢN <span>→</span></button>
         </form>
-        <p class="tiny-note">NXC là điểm ảo trong game, không có giá trị tiền mặt và không thể nạp/rút hay quy đổi.</p>
+
+        <form id="resetPasswordForm" class="nx-auth-form hidden">
+          <div class="nx-reset-title"><strong>🔐 Đặt mật khẩu mới</strong><small>Nhập mật khẩu mới cho tài khoản Nexora.</small></div>
+          <label>Mật khẩu mới
+            <div class="nx-input-wrap"><span>🔒</span><input id="resetPassword" type="password" required minlength="6" autocomplete="new-password"><button class="nx-password-toggle" data-password-target="resetPassword" type="button">👁</button></div>
+          </label>
+          <label>Nhập lại mật khẩu
+            <div class="nx-input-wrap"><span>🔒</span><input id="resetPasswordConfirm" type="password" required minlength="6" autocomplete="new-password"><button class="nx-password-toggle" data-password-target="resetPasswordConfirm" type="button">👁</button></div>
+          </label>
+          <button class="nx-auth-submit" type="submit">CẬP NHẬT MẬT KHẨU</button>
+        </form>
+
+        <p id="authMsg" class="nx-auth-msg" aria-live="polite"></p>
+        <div class="nx-auth-safe"><span>🛡️</span><p><b>Kết nối bảo mật qua Supabase</b><small>Nexora không yêu cầu mật khẩu hoặc OTP tài khoản game.</small></p></div>
       </div>
     </section>
 
-    <section id="appArea" class="hidden">
-      <section id="home" class="hero">
-        <div class="hero-copy">
-          <span class="eyebrow">NEXORA ARENA</span>
-          <h1>Chơi. Leo hạng.<br><span>Thống trị Arena.</span></h1>
-          <p>Giao diện premium tối ưu cho điện thoại, kết nối trực tiếp với tài khoản NXC hiện tại.</p>
-          <div class="hero-actions"><a class="btn gold" href="#games">Khám phá game</a><a class="btn ghost" href="#leaderboard">Xem xếp hạng</a></div>
-        </div>
-        <div class="hero-card">
-          <div class="hero-orb"></div>
-          <div class="hero-stat"><span>Số dư</span><strong id="heroBalance">0 NXC</strong></div>
-          <div class="hero-stat"><span>Vai trò</span><strong id="heroRole">PLAYER</strong></div>
-        </div>
-      </section>
-
-      <section class="section">
-        <div class="section-head"><div><span class="eyebrow">DANH MỤC</span><h2>Chọn trải nghiệm</h2></div></div>
-        <div class="category-row">
-          <button class="category active" data-filter="all">Tất cả</button>
-          <button class="category" data-filter="table">Bàn chơi</button>
-          <button class="category" data-filter="quick">Nhanh</button>
-          <button class="category" data-filter="arcade">Arcade</button>
-        </div>
-      </section>
-
-      <section id="games" class="section">
-        <div class="section-head"><div><span class="eyebrow">GAME NỔI BẬT</span><h2>NEXORA Games</h2></div><span class="live-pill">● LIVE UI</span></div>
-        <div class="game-grid">
-          <article class="game-card featured" data-category="table">
-            <div class="game-art baccarat-art"><div class="playing-card card-a">A♠</div><div class="playing-card card-k">K♦</div><div class="table-glow"></div></div>
-            <div class="game-info"><div><span class="game-tag">TABLE</span><h3>Baccarat Royale</h3><p>Emerald premium.</p></div><a class="play-btn" href="baccarat.html">Chơi</a>
-          </article>
-          <article class="game-card" data-category="table"><div class="game-art blackjack-art"><div class="chip-stack">21</div></div><div class="game-info"><div><span class="game-tag">TABLE</span><h3>Blackjack 21</h3><p>Đạt 21 thật chuẩn.</p></div><button class="play-btn" data-game="Blackjack">Sắp có</button></div></article>
-          <article class="game-card" data-category="quick"><div class="game-art roulette-art"><div class="roulette-wheel">◆</div></div><div class="game-info"><div><span class="game-tag">QUICK</span><h3>Roulette</h3><p>Vòng quay tốc độ cao.</p></div><button class="play-btn" data-game="Roulette">Sắp có</button></div></article>
-          <article class="game-card" data-category="arcade"><div class="game-art dice-art"><div class="dice">⚄</div><div class="dice second">⚂</div></div><div class="game-info"><div><span class="game-tag">ARCADE</span><h3>Dice Duel</h3><p>Nhanh, gọn, nhiều hiệu ứng.</p></div><button class="play-btn" data-game="Dice Duel">Sắp có</button></div></article>
-        </div>
-      </section>
-<!-- ===== VÍ NXC ===== -->
-<section id="nxcWallet" class="section">
-  <div class="panel nxc-wallet-panel">
-
-    <div class="section-head">
-      <div>
-        <span class="eyebrow">VÍ NXC</span>
-        <h2>Yêu cầu NXC</h2>
+    <section class="nx-join-section">
+      <div class="nx-grid-glow" aria-hidden="true"></div>
+      <span class="nx-kicker">NEXORA COMMUNITY • v2.12.1</span>
+      <h2>Sẵn sàng gia nhập <em>Nexora Gaming?</em></h2>
+      <p>Tạo hồ sơ Nexora, kết nối bạn bè, tham gia Clan, tranh tài Tournament và chinh phục phần thưởng trong cùng một cộng đồng.</p>
+      <div class="nx-join-pills"><span>🪪 Nexora ID</span><span>🛡️ Clan</span><span>🏆 Tournament</span><span>🎁 Reward</span></div>
+      <div class="nx-join-actions">
+        <a class="nx-join-primary" href="#register"><span>⚡</span><div><b>Tham gia Nexora</b><small>Đăng ký tài khoản miễn phí</small></div></a>
+        <a class="nx-join-secondary" href="https://t.me/Trai_Nha_Ngheo07" target="_blank" rel="noopener noreferrer"><span>➤</span><div><b>Cộng đồng Telegram</b><small>Giao lưu cùng game thủ Nexora</small></div></a>
       </div>
-
-      <span class="nxc-virtual-pill">ĐIỂM ẢO</span>
-    </div>
-
-    <div class="wallet-balance-box">
-      <span>Số dư hiện tại</span>
-      <strong id="walletPageBalance">0 NXC</strong>
-    </div>
-
-    <form id="nxcRequestForm" class="nxc-request-form">
-
-      <label>
-        Số NXC muốn yêu cầu
-
-        <input
-          id="nxcRequestAmount"
-          type="number"
-          min="1"
-          step="1"
-          placeholder="Ví dụ: 10000"
-          required
-        >
-      </label>
-
-      <div class="nxc-quick-row">
-        <button type="button" data-nxc="1000">
-          1K
-        </button>
-
-        <button type="button" data-nxc="5000">
-          5K
-        </button>
-
-        <button type="button" data-nxc="10000">
-          10K
-        </button>
-
-        <button type="button" data-nxc="50000">
-          50K
-        </button>
-      </div>
-
-      <button class="btn gold" type="submit">
-        GỬI YÊU CẦU
-      </button>
-
-    </form>
-
-    <p class="tiny-note">
-      Đây chỉ là yêu cầu cấp điểm NXC ảo.
-      NXC không có giá trị tiền mặt và không thể
-      nạp/rút hoặc quy đổi thành tiền.
-    </p>
-
-    <div class="nxc-history-head">
-      <h3>Yêu cầu gần đây</h3>
-
-      <button
-        id="refreshNxcRequests"
-        class="mini-btn"
-        type="button"
-      >
-        Làm mới
-      </button>
-    </div>
-
-    <div id="nxcRequestList">
-      <p class="muted">
-        Đang tải...
-      </p>
-    </div>
-<div class="nxc-withdraw-card">
-
-  <div class="section-head">
-    <div>
-      <span class="eyebrow">WITHDRAW NXC</span>
-      <h3>Rút NXC</h3>
-    </div>
-  </div>
-
-  <p class="muted">
-    NXC sẽ bị trừ ngay khi gửi lệnh.
-    Nếu Admin từ chối, NXC sẽ được hoàn lại.
-  </p>
-
-  <form id="nxcWithdrawForm">
-
-    <label class="player-info-field">
-      <span>Số NXC muốn rút</span>
-
-      <input
-        id="nxcWithdrawAmount"
-        type="number"
-        min="1"
-        step="1"
-        inputmode="numeric"
-        placeholder="Ví dụ: 1000"
-        required
-      >
-    </label>
-
-    <div class="nxc-quick-row">
-
-      <button
-        type="button"
-        class="mini-btn"
-        data-withdraw-nxc="1000"
-      >
-        1K
-      </button>
-
-      <button
-        type="button"
-        class="mini-btn"
-        data-withdraw-nxc="5000"
-      >
-        5K
-      </button>
-
-      <button
-        type="button"
-        class="mini-btn"
-        data-withdraw-nxc="10000"
-      >
-        10K
-      </button>
-
-      <button
-        type="button"
-        class="mini-btn"
-        data-withdraw-nxc="50000"
-      >
-        50K
-      </button>
-
-    </div>
-
-    <button
-      class="primary-btn"
-      type="submit"
-    >
-      GỬI LỆNH RÚT
-    </button>
-
-    <p
-      id="nxcWithdrawMessage"
-      class="muted"
-    ></p>
-
-  </form>
-
-  <div class="nxc-history-head">
-
-    <div>
-      <span class="eyebrow">
-        WITHDRAW HISTORY
-      </span>
-
-      <h3>
-        Lịch sử rút NXC
-      </h3>
-    </div>
-
-    <button
-      id="refreshWithdrawRequests"
-      class="mini-btn"
-      type="button"
-    >
-      Làm mới
-    </button>
-
-  </div>
-
-  <div id="nxcWithdrawList">
-    <p class="muted">
-      Đang tải lệnh rút...
-    </p>
-  </div>
-
-</div>
-  </div>
-</section>
-      <section id="leaderboard" class="section split">
-        <div class="panel">
-          <div class="section-head"><div><span class="eyebrow">XẾP HẠNG</span><h2>Top NXC</h2></div><button id="refreshLeaderboard" class="mini-btn">Làm mới</button></div>
-          <div id="leaderboardList"><p class="muted">Đang tải...</p></div>
-        </div>
-        <div id="account" class="panel">
-          <span class="eyebrow">TÀI KHOẢN</span><h2>Hồ sơ Arena</h2>
-          <div class="profile-card"><div class="avatar" id="profileAvatar">N</div><div><strong id="profileUsername">—</strong><span id="profileEmail">—</span></div></div>
-          <div class="profile-stats"><div><span>Số dư</span><strong id="profileBalance">0 NXC</strong></div><div><span>Quyền</span><strong id="profileRole">PLAYER</strong></div></div>
-          <h3 class="subhead">Lịch sử NXC</h3><div id="transactionList"><p class="muted">Chưa có giao dịch.</p></div>
-        </div>
-        <div class="player-info-card">
-
-  <div class="section-head">
-    <div>
-      <span class="eyebrow">PLAYER INFO</span>
-      <h3>Thông tin người chơi</h3>
-    </div>
-  </div>
-
-  <form id="playerInfoForm">
-
-    <label class="player-info-field">
-      <span>Họ và tên</span>
-      <input
-        id="playerFullName"
-        type="text"
-        maxlength="100"
-        autocomplete="name"
-        placeholder="Nguyễn Văn A"
-      >
-    </label>
-
-    <label class="player-info-field">
-      <span>Số điện thoại</span>
-      <input
-        id="playerPhone"
-        type="tel"
-        maxlength="20"
-        autocomplete="tel"
-        placeholder="09xxxxxxxx"
-      >
-    </label>
-
-    <label class="player-info-field">
-      <span>Ngân hàng</span>
-      <input
-        id="playerBankName"
-        type="text"
-        maxlength="100"
-        placeholder="Ví dụ: Vietcombank"
-      >
-    </label>
-
-    <label class="player-info-field">
-      <span>Số tài khoản</span>
-      <input
-        id="playerBankAccount"
-        type="text"
-        inputmode="numeric"
-        maxlength="30"
-        placeholder="Nhập số tài khoản"
-      >
-    </label>
-
-    <button
-      class="primary-btn"
-      type="submit"
-    >
-      LƯU THÔNG TIN
-    </button>
-
-    <p
-      id="playerInfoMessage"
-      class="muted"
-    ></p>
-
-  </form>
-
-</div>
-      </section>
-
-      <section id="adminArea" class="section panel hidden">
-        <div class="section-head"><div><span class="eyebrow">ADMIN ONLY</span><h2>Quản lý người chơi</h2></div><span class="admin-pill">ADMIN</span></div>
-        <input id="playerSearch" placeholder="Tìm theo username...">
-        <div id="playerList" class="player-list"></div>
-<div class="admin-nxc-section">
-<div class="admin-withdraw-section">
-
-  <div class="section-head">
-
-    <div>
-      <span class="eyebrow">
-        WITHDRAW REQUESTS
-      </span>
-
-      <h2>
-        Lệnh rút NXC
-      </h2>
-    </div>
-
-    <button
-      id="refreshAdminWithdraw"
-      class="mini-btn"
-      type="button"
-    >
-      Làm mới
-    </button>
-
-  </div>
-
-  <div id="adminWithdrawList">
-
-    <p class="muted">
-      Đang tải lệnh rút...
-    </p>
-
-  </div>
-
-</div>
-  <div class="section-head">
-    <div>
-      <span class="eyebrow">NXC REQUESTS</span>
-      <h2>Yêu cầu NXC</h2>
-    </div>
-
-    <button
-      id="refreshAdminNxc"
-      class="mini-btn"
-      type="button"
-    >
-      Làm mới
-    </button>
-  </div>
-
-  <div id="adminNxcRequestList">
-    <p class="muted">Đang tải yêu cầu...</p>
-  </div>
-
-</div>
-      </section>
     </section>
   </main>
 
-
-  <!-- Nexora Gaming v2.12.0 — Landing & Footer Upgrade -->
-  <section class="nx-landing-end" aria-label="Tham gia Nexora Gaming">
-    <div class="nx-landing-glow nx-landing-glow-a"></div>
-    <div class="nx-landing-glow nx-landing-glow-b"></div>
-    <div class="nx-landing-end-inner">
-      <div class="nx-landing-kicker">NEXORA COMMUNITY • v2.12.0</div>
-      <h2>Sẵn sàng gia nhập <span>Nexora Gaming?</span></h2>
-      <p>Tạo hồ sơ Nexora, kết nối bạn bè, tham gia Clan, tranh tài Tournament và chinh phục phần thưởng trong cùng một cộng đồng.</p>
-      <div class="nx-feature-chips" aria-label="Tính năng Nexora">
-        <span>🪪 Nexora ID</span><span>🛡️ Clan</span><span>🏆 Tournament</span><span>🎁 Reward</span>
-      </div>
-      <div class="nx-landing-actions">
-        <a class="nx-landing-primary" id="nxJoinNow" href="#authArea"><span>⚡</span><b>Tham gia Nexora</b><small>Đăng ký tài khoản miễn phí</small></a>
-        <a class="nx-landing-secondary" href="https://t.me/Trai_Nha_Ngheo07" target="_blank" rel="noopener noreferrer"><span>✈</span><b>Cộng đồng Telegram</b><small>Giao lưu cùng game thủ Nexora</small></a>
-      </div>
-    </div>
-  </section>
-
   <footer class="nx-site-footer">
-    <div class="nx-footer-inner">
-      <div class="nx-footer-brand"><strong>NEXORA <span>GAMING</span></strong><p>Play • Connect • Compete</p></div>
-      <nav class="nx-footer-links" aria-label="Liên kết Nexora">
-        <a href="dashboard.html">Dashboard</a><a href="tournaments.html">Giải đấu</a><a href="clans.html">Clan</a><a href="rewards.html">Đổi thưởng</a>
-      </nav>
-      <div class="nx-footer-social">
-        <a href="https://www.facebook.com/share/194QprLGyP/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" aria-label="Facebook của Admin">f</a>
-        <a href="https://t.me/Trai_Nha_Ngheo07" target="_blank" rel="noopener noreferrer" aria-label="Telegram Nexora">✈</a>
-      </div>
-      <div class="nx-footer-bottom"><span>© 2026 Nexora Gaming. All rights reserved.</span><span>🔒 Cộng đồng Nexora</span></div>
+    <div class="nx-footer-brand"><b>NEXORA <em>GAMING</em></b><small>PLAY • CONNECT • COMPETE</small></div>
+    <nav class="nx-footer-links" aria-label="Liên kết Nexora">
+      <a href="dashboard.html">Dashboard</a><a href="tournaments.html">Giải đấu</a><a href="clans.html">Clan</a><a href="rewards.html">Đổi thưởng</a>
+    </nav>
+    <div class="nx-footer-social">
+      <a href="https://www.facebook.com/share/194QprLGyP/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" aria-label="Facebook của admin">f</a>
+      <a href="https://t.me/Trai_Nha_Ngheo07" target="_blank" rel="noopener noreferrer" aria-label="Telegram Nexora">➤</a>
     </div>
+    <p>© 2026 Nexora Gaming. Cộng đồng game độc lập.</p>
   </footer>
 
-  <nav id="bottomNav" class="bottom-nav hidden">
-
-  <a href="#home" class="nav-item active">
-    <span>⌂</span>
-    <small>Trang chủ</small>
-  </a>
-
-  <a href="#games" class="nav-item">
-    <span>♠</span>
-    <small>Game</small>
-  </a>
-
-  <a href="#nxcWallet" class="nav-item">
-    <span>◆</span>
-    <small>Ví NXC</small>
-  </a>
-
-  <a href="#leaderboard" class="nav-item">
-    <span>★</span>
-    <small>Xếp hạng</small>
-  </a>
-
-  <a href="#account" class="nav-item">
-    <span>●</span>
-    <small>Tài khoản</small>
-  </a>
-
-</nav>
-  <div id="toast" class="toast"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=18"></script>
-  <script src="menu.js?v=2"></script>
+  <script src="config.js?v=2121"></script>
+  <script src="app.js?v=2121"></script>
   <script>
-    document.getElementById('nxJoinNow')?.addEventListener('click',()=>{
-      const signup=document.getElementById('signupTab');
-      if(signup && !document.getElementById('authArea')?.classList.contains('hidden')) setTimeout(()=>signup.click(),80);
-    });
+    (function(){
+      const join=document.querySelector('.nx-join-primary');
+      if(join) join.addEventListener('click',function(e){
+        e.preventDefault(); location.hash='register';
+        document.getElementById('registerTab')?.click();
+        document.querySelector('.nx-auth-card')?.scrollIntoView({behavior:'smooth',block:'center'});
+      });
+    })();
   </script>
 </body>
 </html>
