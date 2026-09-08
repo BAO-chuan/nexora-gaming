@@ -1,0 +1,14 @@
+NEXORA GAMING v2.12.0 — LANDING & FOOTER UPGRADE
+
+1) Upload/ghi đè index.html và styles.css lên GitHub Pages.
+2) Không cần chạy SQL.
+3) Không thay app.js, menu.js, Profile, Clan, Tournament hoặc Reward.
+4) Sau khi deploy, hard refresh trình duyệt.
+
+Thay đổi:
+- CTA gia nhập Nexora theo phong cách riêng của website.
+- Lối tắt Nexora ID / Clan / Tournament / Reward.
+- Nút Telegram cộng đồng.
+- Footer mới với Dashboard / Giải đấu / Clan / Đổi thưởng.
+- Facebook Admin + Telegram.
+- Tối ưu mobile và safe-area iPhone.
