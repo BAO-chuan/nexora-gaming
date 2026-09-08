@@ -1,0 +1,20 @@
+/* Nexora v2.7.1 — Dedicated Module Pages */
+.module-page{background:#070a0f}
+.module-page .sidebar-toggle,.module-page .sidebar-overlay,.module-page .welcome,.module-page .lynkora-promo-banner,.module-page .nx-hub-strip,.module-page .dashboard-nav-panel,.module-page #siteAnnouncementPanel,.module-page #pushCenterPanel,.module-page .nexora-about-panel{display:none!important}
+.module-page main.dash{padding-top:24px}
+.module-page [data-dash-category]{display:none!important}
+.module-page [data-dash-category].module-visible{display:block!important}
+.module-page .dash-grid:has(> [data-dash-category].module-visible){display:grid!important}
+.module-page .dash-grid:not(:has(> [data-dash-category].module-visible)){display:none!important}
+.module-page-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin:0 0 12px;padding:22px;border:1px solid rgba(255,145,36,.23);border-radius:22px;background:radial-gradient(circle at 100% 0,rgba(255,128,22,.16),transparent 38%),linear-gradient(145deg,#0d121a,#080b10);overflow:hidden;position:relative}
+.module-page-hero:after{content:"";position:absolute;right:-45px;top:-80px;width:200px;height:200px;border:1px solid rgba(255,151,42,.14);border-radius:50%;pointer-events:none}
+.module-page-kicker{color:#ff901f;font-size:10px;font-weight:950;letter-spacing:1.8px}
+.module-page-hero h1{margin:6px 0;font-size:clamp(28px,5vw,44px);line-height:1}
+.module-page-hero p{max-width:720px;margin:0;color:#92a0b3;line-height:1.55;font-size:13px}
+.module-nav-grid{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:6px;margin:0 0 18px;padding:7px;border:1px solid #27313d;border-radius:16px;background:#090e14;overflow-x:auto}
+.module-nav-grid a{min-width:88px;min-height:52px;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:11px;text-decoration:none;color:#8f9daf;font-size:10px;font-weight:900;white-space:nowrap}
+.module-nav-grid a span{font-size:16px}.module-nav-grid a.active{background:linear-gradient(135deg,#4a270d,#17110c);color:#ffb15a;border:1px solid rgba(255,149,34,.3)}
+.module-page .module-visible{margin-top:14px}
+.module-page .module-visible.dashboard-category-hidden{display:block!important}
+@media(max-width:900px){.module-nav-grid{grid-template-columns:repeat(5,minmax(90px,1fr))}}
+@media(max-width:600px){.module-page main.dash{padding-top:14px}.module-page-hero{align-items:flex-start;padding:17px}.module-page-hero>a{display:none}.module-page-hero p{font-size:12px}.module-nav-grid{grid-template-columns:repeat(3,minmax(92px,1fr));overflow:visible}.module-nav-grid a{min-width:0}.module-page .top nav #navName{display:none}}
