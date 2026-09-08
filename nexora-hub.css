@@ -5,3 +5,111 @@
 @media(max-width:760px){.nx-hub-grid{grid-template-columns:1fr}.nx-hub-card{min-height:78px}.hub-top{padding:12px 14px}.hub-user{display:none}.hub-shell{width:min(100% - 20px,1040px)!important;padding-top:14px!important}.hub-hero{padding:18px}.hub-switcher{grid-template-columns:repeat(2,1fr)}.hub-form{grid-template-columns:1fr}.hub-card-actions .btn,.hub-card-actions .ghost{min-width:0}.hub-bottom-nav{position:fixed;z-index:50;left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:6px;border-radius:16px;background:rgba(7,11,16,.95);border:1px solid #28323e;backdrop-filter:blur(14px)}.hub-bottom-nav a{display:grid;place-items:center;gap:2px;min-height:48px;border-radius:11px;color:#8e9bad;text-decoration:none;font-size:9px;font-weight:850}.hub-bottom-nav a span{font-size:17px}.hub-bottom-nav a.active{background:#2d180b;color:#ffae55}.hub-actions .ghost{padding:9px 10px;font-size:11px}}
 
 @media(max-width:980px) and (min-width:761px){.nx-hub-grid{grid-template-columns:repeat(2,1fr)}}
+
+/* =========================================================
+   Nexora v2.10.1 — Reward Visibility
+   Make Reward Center easier to discover without changing it.
+   ========================================================= */
+.nx-reward-spotlight{
+  position:relative;
+  isolation:isolate;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  margin:16px 0;
+  padding:18px 20px;
+  overflow:hidden;
+  text-decoration:none;
+  color:#fff;
+  border:1px solid rgba(255,157,46,.58);
+  border-radius:20px;
+  background:
+    radial-gradient(circle at 12% 50%,rgba(255,174,56,.18),transparent 31%),
+    linear-gradient(110deg,rgba(255,126,18,.16),rgba(12,17,24,.98) 42%,rgba(255,183,53,.08));
+  box-shadow:0 12px 34px rgba(0,0,0,.28),inset 0 0 0 1px rgba(255,209,117,.05);
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.nx-reward-spotlight:hover{
+  transform:translateY(-2px);
+  border-color:#ffad38;
+  box-shadow:0 15px 38px rgba(0,0,0,.34),0 0 24px rgba(255,139,35,.13);
+}
+.nx-reward-spotlight-icon{
+  flex:0 0 54px;
+  width:54px;
+  height:54px;
+  display:grid;
+  place-items:center;
+  border-radius:17px;
+  font-size:30px;
+  background:linear-gradient(145deg,#ffb12c,#ff7b13);
+  box-shadow:0 8px 22px rgba(255,126,18,.28),inset 0 1px rgba(255,255,255,.3);
+}
+.nx-reward-spotlight-copy{display:grid;gap:3px;min-width:0;flex:1}
+.nx-reward-spotlight-copy small{
+  color:#ff9d2e;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.14em;
+}
+.nx-reward-spotlight-copy b{font-size:clamp(18px,2.4vw,25px);line-height:1.08}
+.nx-reward-spotlight-copy span{color:#9faabd;font-size:13px;line-height:1.35}
+.nx-reward-spotlight-cta{
+  flex:0 0 auto;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:12px 15px;
+  border-radius:13px;
+  color:#101216;
+  background:linear-gradient(135deg,#ffc044,#ff8b1d);
+  font-size:12px;
+  font-weight:950;
+  box-shadow:0 7px 20px rgba(255,139,29,.2);
+}
+.nx-reward-spotlight-cta b{font-size:22px;line-height:.7}
+.nx-reward-spotlight-shine{
+  position:absolute;
+  z-index:-1;
+  width:150px;
+  height:150px;
+  right:-65px;
+  top:-75px;
+  border-radius:50%;
+  background:rgba(255,168,47,.12);
+  filter:blur(2px);
+}
+.nx-hub-card-reward{
+  position:relative;
+  border-color:rgba(255,157,46,.65)!important;
+  background:linear-gradient(135deg,rgba(255,139,35,.17),rgba(255,196,80,.05))!important;
+  box-shadow:inset 3px 0 #ff971f,0 7px 18px rgba(0,0,0,.16);
+}
+.nx-hub-card-reward .nx-hub-icon{filter:drop-shadow(0 0 9px rgba(255,161,42,.5))}
+.nx-hub-card-reward>span b{color:#ffc052}
+.nx-hub-card-reward em{
+  position:absolute;
+  top:9px;
+  right:9px;
+  padding:4px 7px;
+  border-radius:999px;
+  font-size:9px;
+  font-style:normal;
+  font-weight:950;
+  letter-spacing:.08em;
+  color:#1a1208;
+  background:#ffad31;
+}
+@media(max-width:650px){
+  .nx-reward-spotlight{gap:12px;padding:15px 14px;border-radius:18px}
+  .nx-reward-spotlight-icon{flex-basis:46px;width:46px;height:46px;border-radius:14px;font-size:25px}
+  .nx-reward-spotlight-copy b{font-size:17px}
+  .nx-reward-spotlight-copy span{font-size:11px}
+  .nx-reward-spotlight-cta{padding:10px 11px;font-size:10px}
+  .nx-reward-spotlight-cta b{font-size:18px}
+}
+@media(max-width:430px){
+  .nx-reward-spotlight{align-items:flex-start;flex-wrap:wrap}
+  .nx-reward-spotlight-copy{min-width:calc(100% - 62px)}
+  .nx-reward-spotlight-cta{margin-left:58px;margin-top:-2px}
+}
