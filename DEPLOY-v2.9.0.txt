@@ -1,0 +1,23 @@
+NEXORA GAMING v2.9.0 — TOURNAMENT EXPERIENCE
+
+1) Chạy file Nexora-Gaming-v2.9.0-Tournament-Experience.sql trong Supabase SQL Editor, SAU v2.8.1.
+2) Upload/ghi đè các file frontend trong ZIP vào cùng thư mục website:
+   - admin.html
+   - admin-tournament-center.js
+   - tournament.html
+   - tournaments.html
+   - tournament-center.js
+   - tournament-detail.js
+   - tournament-center.css
+3) Không cần thay app.js, config.js, styles.css hoặc các module khác.
+4) Web Push dùng Edge Function hiện có: nexora-web-push.
+5) Sau deploy, hard refresh trình duyệt.
+
+Tính năng v2.9.0:
+- Admin đặt ngày/giờ cho từng trận.
+- Admin nhập tỉ số, link stream, thông tin phòng và ghi chú.
+- Trang chi tiết trận hiển thị lịch thi đấu, countdown, tỉ số, stream/phòng.
+- Bracket mobile được nâng cấp, phân vòng rõ hơn.
+- Timeline hoạt động giải đấu.
+- Thông báo Web Push khi Team được duyệt/từ chối.
+- Lịch sử giải đấu hiển thị đẹp hơn ở tab Đã kết thúc.
