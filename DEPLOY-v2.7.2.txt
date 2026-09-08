@@ -1,0 +1,9 @@
+NEXORA GAMING v2.7.2 — EVENT CENTER 2.0
+
+1) Supabase SQL Editor: chạy Nexora-Gaming-v2.7.2-Event-Center.sql một lần.
+2) GitHub: upload/Replace đúng các file trong ZIP (không upload file SQL nếu bạn không muốn lưu SQL trên repo).
+3) Reload Safari/GitHub Pages.
+4) Test: Events -> LIVE/Sắp diễn ra/Đã kết thúc/Event của tôi -> Event chi tiết.
+5) Admin -> Event: tạo Draft, Publish, Featured, giới hạn người, kết thúc Event, công bố kết quả, chọn Winner.
+
+Không sửa Edge Function. Không sửa app.js. Web Push v2.6.10 không bị thay đổi.
