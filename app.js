@@ -457,35 +457,78 @@ async function loadProofs(user){
 }
 async function adminProofs(){
  const box=$('adminProofList');if(!box)return;
+ const escAttr=v=>esc(String(v??'')).replace(/"/g,'&quot;');
+ const codeOf=x=>`NX-${String(x.submission_id||'PROOF').replace(/-/g,'').slice(-6).toUpperCase()}`;
+ const reasonPrompt=()=>{
+   const pick=prompt('Lý do từ chối:\n1 = Ảnh không hợp lệ\n2 = Không chứng minh hoàn thành\n3 = Ảnh trùng / đã sử dụng\n4 = Khác\n\nNhập 1-4 hoặc ghi lý do:','1');
+   if(pick===null)return null;
+   const map={'1':'Ảnh không hợp lệ','2':'Không chứng minh hoàn thành Challenge','3':'Ảnh trùng / đã được sử dụng','4':'Khác'};
+   let reason=map[String(pick).trim()]||String(pick).trim();
+   if(reason==='Khác')reason=prompt('Nhập lý do từ chối:','')||'Khác';
+   return reason;
+ };
+ async function getRows(status){
+   const {data,error}=await db.rpc('nexora_admin_challenge_proofs_v263',{p_status:status});
+   if(error)throw error;return data||[];
+ }
  async function load(){
-   const {data,error}=await db.rpc('nexora_admin_challenge_proofs_v263',{p_status:'pending'});
-   if(error){box.textContent='Hãy chạy SQL v2.6.3 trước.';return}
-   const cards=await Promise.all((data||[]).map(async x=>{
-     const url=await proofHref(x);
-     return `<article class="proof-card pending">
-       <div class="proof-head"><b>${esc(x.display_name)} • ${esc(x.challenge_title)}</b><strong>+${x.points} điểm</strong></div>
-       <div class="admin-proof-verify">
-         <span>🎮 ${esc(x.game_mode||'Challenge')} ${x.team_size?`• Team ${x.team_size}`:''}</span>
-         <span>🔎 ${esc(x.proof_requirement||'Kiểm tra ảnh kết quả theo điều kiện Challenge')}</span>
-         <span>🆔 UID: ${esc(x.game_uid||'chưa có')} • ${fmtDate(x.created_at)}</span>
-       </div>
-       <p>${esc(x.note||'')}</p>
-       <div class="proof-media-grid"><div><b>Proof 1 — Kết quả</b>${proofMedia(url,x.proof_mime_type)}</div>${x.proof_url_2?`<div><b>Proof 2 — Đội hình/bổ sung</b>${proofMedia(x.proof_url_2,'image/')}</div>`:''}</div>
-       <div class="proof-actions"><button class="btn proof-review" data-id="${x.submission_id}" data-user="${x.user_id||''}" data-points="${x.points||0}" data-title="${esc(x.challenge_title||'Challenge')}" data-status="approved">✓ Duyệt + cộng điểm</button><button class="ghost proof-review" data-id="${x.submission_id}" data-user="${x.user_id||''}" data-points="${x.points||0}" data-title="${esc(x.challenge_title||'Challenge')}" data-status="rejected">Từ chối</button></div>
-     </article>`
-   }));
-   box.innerHTML=cards.join('')||'<div class="empty-state">Không có bằng chứng nào đang chờ duyệt.</div>';
-   document.querySelectorAll('.proof-review').forEach(b=>b.onclick=async()=>{
-     let note='';if(b.dataset.status==='rejected')note=prompt('Lý do từ chối (không bắt buộc):')||'';
-     const {data,error}=await db.rpc('nexora_admin_review_challenge_proof',{p_submission_id:b.dataset.id,p_status:b.dataset.status,p_admin_note:note});
-     if(error)return msg('adminMsg',error.message,true);
-     msg('adminMsg',data?.message||'Đã xử lý',!data?.ok);
-     if(data?.ok!==false&&window.NEXORA_PUSH&&b.dataset.user){
-       const approved=b.dataset.status==='approved';
-       window.NEXORA_PUSH.adminNotify(b.dataset.user,approved?'🛡️ Proof đã được duyệt':'🛡️ Proof bị từ chối',approved?`${b.dataset.title||'Challenge'} đã được duyệt. +${b.dataset.points||0} PTS đã được ghi nhận.`:`${b.dataset.title||'Challenge'} cần gửi lại bằng chứng.${note?` Lý do: ${note}`:''}`,'./dashboard.html','proof-review');
-     }
-     load();loadAdminProofNotificationsV266()
-   })
+   box.innerHTML='<div class="empty-state">Đang kiểm tra bằng chứng...</div>';
+   let all=[];
+   try{
+     const sets=await Promise.all(['pending','approved','rejected'].map(async s=>(await getRows(s)).map(x=>({...x,status:x.status||s}))));
+     const seen=new Set();all=sets.flat().filter(x=>{const k=String(x.submission_id);if(seen.has(k))return false;seen.add(k);return true});
+   }catch(error){box.textContent='Không tải được Proof Review: '+(error?.message||'Lỗi RPC');return}
+   const urlCount=new Map();
+   all.forEach(x=>[x.proof_path,x.proof_url,x.proof_url_2].filter(Boolean).forEach(u=>urlCount.set(String(u),1+(urlCount.get(String(u))||0))));
+   const userStats=new Map();
+   all.forEach(x=>{const k=String(x.user_id||'');const s=userStats.get(k)||{approved:0,rejected:0,pending:0};s[x.status]=(s[x.status]||0)+1;userStats.set(k,s)});
+   box.innerHTML=`<div class="proof-review-toolbar">
+     <div><b>🛡️ Proof Review 2.0</b><small>${all.filter(x=>x.status==='pending').length} bằng chứng đang chờ</small></div>
+     <div class="proof-review-filters">
+       <button class="ghost small active" data-proof-filter="pending">⏳ Chờ duyệt</button>
+       <button class="ghost small" data-proof-filter="risk">⚠️ Cần kiểm tra</button>
+       <button class="ghost small" data-proof-filter="all">Tất cả</button>
+       <button class="ghost small" data-proof-filter="approved">✓ Đã duyệt</button>
+       <button class="ghost small" data-proof-filter="rejected">✕ Từ chối</button>
+     </div>
+   </div><div id="proofReviewCards"></div>`;
+   const cardsBox=$('proofReviewCards');
+   async function render(filter='pending'){
+     const rows=all.filter(x=>{
+       const dup=[x.proof_path,x.proof_url,x.proof_url_2].filter(Boolean).some(u=>(urlCount.get(String(u))||0)>1);
+       return filter==='all'||(filter==='risk'&&dup)||x.status===filter;
+     });
+     const cards=await Promise.all(rows.map(async x=>{
+       const url=await proofHref(x),dup=[x.proof_path,x.proof_url,x.proof_url_2].filter(Boolean).some(u=>(urlCount.get(String(u))||0)>1),st=userStats.get(String(x.user_id||''))||{};
+       const pending=x.status==='pending',code=codeOf(x);
+       return `<article class="proof-card ${escAttr(x.status)} proof-review-card ${dup?'proof-risk':''}">
+         <div class="proof-head"><div><b>${esc(x.display_name||'Game thủ')} • ${esc(x.challenge_title||'Challenge')}</b><small class="proof-code">${code}</small></div><strong>+${Number(x.points||0)} PTS</strong></div>
+         <div class="proof-review-status-row"><span class="proof-status">${proofStatus(x.status)}</span>${dup?'<span class="proof-risk-badge">⚠️ Ảnh/URL đã xuất hiện ở proof khác</span>':'<span class="proof-safe-badge">🟢 Chưa thấy ảnh/URL trùng</span>'}</div>
+         <div class="admin-proof-verify">
+           <span>🎮 ${esc(x.game_mode||'Challenge')} ${x.team_size?`• Team ${x.team_size}`:''}</span>
+           <span>🔎 ${esc(x.proof_requirement||'Kiểm tra kết quả theo điều kiện Challenge')}</span>
+           <span>🆔 UID: ${esc(x.game_uid||'chưa có')} • Gửi ${fmtDate(x.created_at)}</span>
+           <span>📊 Lịch sử hiện có: ✓ ${st.approved||0} duyệt • ✕ ${st.rejected||0} từ chối • ⏳ ${st.pending||0} chờ</span>
+         </div>
+         <p>${esc(x.note||'Không có ghi chú.')}</p>
+         <div class="proof-media-grid"><div><b>Proof 1 — Kết quả</b>${proofMedia(url,x.proof_mime_type)}</div>${x.proof_url_2?`<div><b>Proof 2 — Đội hình/bổ sung</b>${proofMedia(x.proof_url_2,'image/')}</div>`:''}</div>
+         ${x.admin_note?`<p class="note">Admin: ${esc(x.admin_note)}</p>`:''}
+         ${pending?`<div class="proof-actions"><button class="btn proof-review" data-id="${escAttr(x.submission_id)}" data-user="${escAttr(x.user_id||'')}" data-points="${Number(x.points||0)}" data-title="${escAttr(x.challenge_title||'Challenge')}" data-status="approved">✓ Duyệt +${Number(x.points||0)} PTS</button><button class="ghost proof-review" data-id="${escAttr(x.submission_id)}" data-user="${escAttr(x.user_id||'')}" data-points="${Number(x.points||0)}" data-title="${escAttr(x.challenge_title||'Challenge')}" data-status="rejected">✕ Từ chối</button></div>`:''}
+       </article>`
+     }));
+     cardsBox.innerHTML=cards.join('')||'<div class="empty-state">Không có bằng chứng trong bộ lọc này.</div>';
+     cardsBox.querySelectorAll('.proof-review').forEach(b=>b.onclick=async()=>{
+       let note='';if(b.dataset.status==='rejected'){note=reasonPrompt();if(note===null)return}
+       b.disabled=true;
+       const {data,error}=await db.rpc('nexora_admin_review_challenge_proof',{p_submission_id:b.dataset.id,p_status:b.dataset.status,p_admin_note:note});
+       if(error){b.disabled=false;return msg('adminMsg',error.message,true)}
+       msg('adminMsg',data?.message||'Đã xử lý',!data?.ok);
+       if(data?.ok!==false&&window.NEXORA_PUSH&&b.dataset.user){const approved=b.dataset.status==='approved';window.NEXORA_PUSH.adminNotify(b.dataset.user,approved?'🛡️ Proof đã được duyệt':'🛡️ Proof bị từ chối',approved?`${b.dataset.title||'Challenge'} đã được duyệt. +${b.dataset.points||0} PTS đã được ghi nhận.`:`${b.dataset.title||'Challenge'} cần gửi lại bằng chứng.${note?` Lý do: ${note}`:''}`,'./dashboard.html','proof-review')}
+       await load();loadAdminProofNotificationsV266();
+     });
+   }
+   box.querySelectorAll('[data-proof-filter]').forEach(b=>b.onclick=()=>{box.querySelectorAll('[data-proof-filter]').forEach(x=>x.classList.remove('active'));b.classList.add('active');render(b.dataset.proofFilter)});
+   await render('pending');
  }
  if($('refreshProofAdmin'))$('refreshProofAdmin').onclick=load;await load()
 }

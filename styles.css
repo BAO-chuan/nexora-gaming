@@ -845,3 +845,10 @@ html[data-season-rank="master"]{--rank-accent:#ff4b23;--rank-deep:#8b130f}
 .push-center-panel .pill.push-off{color:#ffd58c;border-color:rgba(255,175,54,.34);background:rgba(179,107,25,.12)}
 .push-ios-note{margin-top:12px;padding:11px 12px;border:1px solid rgba(74,181,255,.22);border-radius:12px;background:rgba(40,128,198,.09);color:#bfe6ff;font-size:.86rem;line-height:1.5}
 @media(max-width:520px){.push-center-actions>*{flex:1 1 100%}.push-center-panel .section-head{align-items:flex-start}.push-center-panel .pill{font-size:.66rem}}
+
+
+/* Nexora v2.13.9 — Proof Review 2.0 */
+.proof-review-toolbar{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin:0 0 14px;padding:12px;border:1px solid rgba(255,181,61,.18);border-radius:14px;background:rgba(255,155,31,.045)}
+.proof-review-toolbar>div:first-child small{display:block;margin-top:4px;color:#9fb0c5}.proof-review-filters{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.proof-review-filters .active{border-color:#ffb13b!important;color:#ffd37b!important;background:rgba(255,177,59,.09)!important}
+.proof-review-card{position:relative}.proof-review-card.proof-risk{border-color:#a56c21;box-shadow:inset 0 0 0 1px rgba(255,177,59,.08)}.proof-code{display:block;margin-top:4px;color:#79dfff;font-weight:900;letter-spacing:.08em}.proof-review-status-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0}.proof-risk-badge,.proof-safe-badge{font-size:11px;font-weight:900;padding:5px 8px;border-radius:999px}.proof-risk-badge{color:#ffd27a;background:rgba(255,166,0,.12);border:1px solid rgba(255,166,0,.28)}.proof-safe-badge{color:#8fe3bf;background:rgba(41,190,125,.09);border:1px solid rgba(41,190,125,.2)}
+@media(max-width:760px){.proof-review-toolbar{flex-direction:column}.proof-review-filters{justify-content:flex-start}.proof-review-filters>*{flex:1 1 auto}.proof-review-card .proof-head{align-items:flex-start}.proof-review-card .proof-head strong{white-space:nowrap}}
