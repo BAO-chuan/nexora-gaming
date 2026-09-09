@@ -459,6 +459,9 @@ async function adminProofs(){
  const box=$('adminProofList');if(!box)return;
  const escAttr=v=>esc(String(v??'')).replace(/"/g,'&quot;');
  const codeOf=x=>`NX-${String(x.submission_id||'PROOF').replace(/-/g,'').slice(-6).toUpperCase()}`;
+ const ageMs=x=>Math.max(0,Date.now()-new Date(x.created_at||Date.now()).getTime());
+ const waitText=x=>{const m=Math.floor(ageMs(x)/60000);if(m<1)return'vừa gửi';if(m<60)return`${m} phút`;const h=Math.floor(m/60);if(h<24)return`${h} giờ ${m%60?`${m%60} phút`:''}`.trim();const d=Math.floor(h/24);return`${d} ngày ${h%24?`${h%24} giờ`:''}`.trim()};
+ const isPriority=x=>x.status==='pending'&&ageMs(x)>=2*60*60*1000;
  const reasonPrompt=()=>{
    const pick=prompt('Lý do từ chối:\n1 = Ảnh không hợp lệ\n2 = Không chứng minh hoàn thành\n3 = Ảnh trùng / đã sử dụng\n4 = Khác\n\nNhập 1-4 hoặc ghi lý do:','1');
    if(pick===null)return null;
@@ -482,8 +485,12 @@ async function adminProofs(){
    all.forEach(x=>[x.proof_path,x.proof_url,x.proof_url_2].filter(Boolean).forEach(u=>urlCount.set(String(u),1+(urlCount.get(String(u))||0))));
    const userStats=new Map();
    all.forEach(x=>{const k=String(x.user_id||'');const s=userStats.get(k)||{approved:0,rejected:0,pending:0};s[x.status]=(s[x.status]||0)+1;userStats.set(k,s)});
-   box.innerHTML=`<div class="proof-review-toolbar">
-     <div><b>🛡️ Proof Review 2.0</b><small>${all.filter(x=>x.status==='pending').length} bằng chứng đang chờ</small></div>
+   const pendingCount=all.filter(x=>x.status==='pending').length;
+   const riskCount=all.filter(x=>x.status==='pending'&&[x.proof_path,x.proof_url,x.proof_url_2].filter(Boolean).some(u=>(urlCount.get(String(u))||0)>1)).length;
+   const todayKey=new Date().toLocaleDateString('en-CA');
+   const approvedToday=all.filter(x=>x.status==='approved'&&x.reviewed_at&&new Date(x.reviewed_at).toLocaleDateString('en-CA')===todayKey).length;
+   box.innerHTML=`<div class="proof-quick-summary"><span>⏳ Chờ <b>${pendingCount}</b></span><span>⚠️ Cần kiểm tra <b>${riskCount}</b></span><span>✓ Hôm nay đã duyệt <b>${approvedToday}</b></span></div><div class="proof-review-toolbar">
+     <div><b>🛡️ Proof Review 2.1 • Admin Quick Control</b><small>${pendingCount} bằng chứng đang chờ • Proof cũ nhất được đưa lên trước</small></div>
      <div class="proof-review-filters">
        <button class="ghost small active" data-proof-filter="pending">⏳ Chờ duyệt</button>
        <button class="ghost small" data-proof-filter="risk">⚠️ Cần kiểm tra</button>
@@ -496,20 +503,22 @@ async function adminProofs(){
    async function render(filter='pending'){
      const rows=all.filter(x=>{
        const dup=[x.proof_path,x.proof_url,x.proof_url_2].filter(Boolean).some(u=>(urlCount.get(String(u))||0)>1);
-       return filter==='all'||(filter==='risk'&&dup)||x.status===filter;
-     });
+       return filter==='all'||(filter==='risk'&&x.status==='pending'&&dup)||x.status===filter;
+     }).sort((a,b)=>{if(a.status==='pending'&&b.status==='pending')return new Date(a.created_at||0)-new Date(b.created_at||0);return new Date(b.created_at||0)-new Date(a.created_at||0)});
      const cards=await Promise.all(rows.map(async x=>{
        const url=await proofHref(x),dup=[x.proof_path,x.proof_url,x.proof_url_2].filter(Boolean).some(u=>(urlCount.get(String(u))||0)>1),st=userStats.get(String(x.user_id||''))||{};
-       const pending=x.status==='pending',code=codeOf(x);
-       return `<article class="proof-card ${escAttr(x.status)} proof-review-card ${dup?'proof-risk':''}">
+       const pending=x.status==='pending',code=codeOf(x),priority=isPriority(x),uid=x.game_uid||'';
+       return `<article class="proof-card ${escAttr(x.status)} proof-review-card ${dup?'proof-risk':''} ${priority?'proof-priority':''}">
          <div class="proof-head"><div><b>${esc(x.display_name||'Game thủ')} • ${esc(x.challenge_title||'Challenge')}</b><small class="proof-code">${code}</small></div><strong>+${Number(x.points||0)} PTS</strong></div>
-         <div class="proof-review-status-row"><span class="proof-status">${proofStatus(x.status)}</span>${dup?'<span class="proof-risk-badge">⚠️ Ảnh/URL đã xuất hiện ở proof khác</span>':'<span class="proof-safe-badge">🟢 Chưa thấy ảnh/URL trùng</span>'}</div>
+         <div class="proof-review-status-row"><span class="proof-status">${proofStatus(x.status)}</span>${priority?'<span class="proof-priority-badge">🚨 Ưu tiên xử lý</span>':''}${dup?'<span class="proof-risk-badge">⚠️ Ảnh/URL đã xuất hiện ở proof khác</span>':'<span class="proof-safe-badge">🟢 Chưa thấy ảnh/URL trùng</span>'}</div>
          <div class="admin-proof-verify">
            <span>🎮 ${esc(x.game_mode||'Challenge')} ${x.team_size?`• Team ${x.team_size}`:''}</span>
            <span>🔎 ${esc(x.proof_requirement||'Kiểm tra kết quả theo điều kiện Challenge')}</span>
-           <span>🆔 UID: ${esc(x.game_uid||'chưa có')} • Gửi ${fmtDate(x.created_at)}</span>
+           <span>🕐 ${pending?`Đã chờ ${waitText(x)}`:`Gửi ${fmtDate(x.created_at)}`}</span>
+           <span>🆔 UID: ${esc(uid||'chưa có')}</span>
            <span>📊 Lịch sử hiện có: ✓ ${st.approved||0} duyệt • ✕ ${st.rejected||0} từ chối • ⏳ ${st.pending||0} chờ</span>
          </div>
+         <div class="proof-quick-actions">${uid?`<button class="ghost small proof-copy-uid" type="button" data-uid="${escAttr(uid)}">📋 Sao chép UID</button>`:''}${url?`<a class="ghost small proof-open-media" href="${escAttr(url)}" target="_blank" rel="noopener">🔍 Xem Proof 1 lớn</a>`:''}${x.proof_url_2?`<a class="ghost small proof-open-media" href="${escAttr(x.proof_url_2)}" target="_blank" rel="noopener">🔍 Xem Proof 2 lớn</a>`:''}</div>
          <p>${esc(x.note||'Không có ghi chú.')}</p>
          <div class="proof-media-grid"><div><b>Proof 1 — Kết quả</b>${proofMedia(url,x.proof_mime_type)}</div>${x.proof_url_2?`<div><b>Proof 2 — Đội hình/bổ sung</b>${proofMedia(x.proof_url_2,'image/')}</div>`:''}</div>
          ${x.admin_note?`<p class="note">Admin: ${esc(x.admin_note)}</p>`:''}
@@ -517,6 +526,7 @@ async function adminProofs(){
        </article>`
      }));
      cardsBox.innerHTML=cards.join('')||'<div class="empty-state">Không có bằng chứng trong bộ lọc này.</div>';
+     cardsBox.querySelectorAll('.proof-copy-uid').forEach(b=>b.onclick=async()=>{try{await navigator.clipboard.writeText(b.dataset.uid);const old=b.textContent;b.textContent='✓ Đã sao chép UID';setTimeout(()=>b.textContent=old,1400)}catch{prompt('Sao chép UID:',b.dataset.uid)}});
      cardsBox.querySelectorAll('.proof-review').forEach(b=>b.onclick=async()=>{
        let note='';if(b.dataset.status==='rejected'){note=reasonPrompt();if(note===null)return}
        b.disabled=true;
