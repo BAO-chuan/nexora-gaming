@@ -15,7 +15,7 @@
 </section>
 <section class="panel admin-module-section admin-module-hidden" data-admin-module-section="notifications">
   <div class="section-head"><div><div class="eyebrow">NEXORA ALERTS • v2.6.7</div><h2>🔔 Trung tâm thông báo Admin</h2></div>
-  <div class="admin-notif-actions"><button id="refreshAdminNotifications" class="ghost small" type="button">Làm mới</button><button id="markAdminNotificationsRead" class="ghost small" type="button">Đánh dấu tất cả đã đọc</button></div></div>
+  <div class="admin-notif-actions"><button id="refreshAdminNotifications" class="ghost small" type="button">Làm mới</button><button id="markAdminNotificationsRead" class="ghost small" type="button">Đánh dấu tất cả đã đọc</button><button id="clearAdminNotificationHistory" class="ghost small admin-danger" type="button">🗑️ Xóa lịch sử</button></div></div>
   <p class="note">Proof mới, yêu cầu đổi thưởng và Ticket hỗ trợ mới sẽ xuất hiện tại đây. Bạn có thể mở thẳng đúng khu vực cần xử lý.</p>
   <div class="admin-notification-group">
     <div class="notification-subhead"><b>🛡️ Proof cần duyệt</b></div>
@@ -107,4 +107,24 @@ BOOYAH hợp lệ = vượt thử thách"></textarea><small>Mỗi dòng là mộ
 .admin-module-nav{margin:18px 0}.admin-module-tabs{display:flex;gap:9px;overflow-x:auto;padding:8px 0 2px;scrollbar-width:none}.admin-module-tabs::-webkit-scrollbar{display:none}.admin-module-tab{flex:0 0 auto;border:1px solid rgba(255,138,24,.28);background:#0b1219;color:#aeb9c6;border-radius:9px;padding:11px 14px;font-weight:900;cursor:pointer}.admin-module-tab.active{color:#fff;border-color:#ff8a18;background:linear-gradient(135deg,rgba(255,138,24,.25),rgba(255,77,50,.1));box-shadow:inset 3px 0 0 #ffd04a}.admin-module-hidden{display:none!important}.admin-module-section{animation:adminModuleIn .18s ease}@keyframes adminModuleIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}@media(max-width:640px){.admin-module-nav{padding:14px}.admin-module-tab{padding:10px 12px;font-size:13px}}
  .admin-search-row{display:flex;gap:8px;margin:12px 0 16px}.admin-search-row input{flex:1}.admin-v25-card{border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:13px;margin:10px 0;background:rgba(8,13,19,.72)}.admin-v25-meta{display:flex;gap:8px;flex-wrap:wrap;margin:7px 0;color:#aeb9c6;font-size:12px}.admin-v25-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.admin-v25-actions button{font-size:12px}.admin-danger{border-color:rgba(255,74,74,.55)!important;color:#ff8b8b!important}.admin-audit-detail{font-size:12px;color:#aeb9c6;word-break:break-word}@media(max-width:640px){.admin-search-row{align-items:stretch}.admin-search-row input{min-width:0}.admin-v25-actions button{flex:1 1 auto}} </style><script>
 document.addEventListener('DOMContentLoaded',()=>{const tabs=[...document.querySelectorAll('.admin-module-tab')],sections=[...document.querySelectorAll('[data-admin-module-section]')];function show(key){tabs.forEach(b=>b.classList.toggle('active',b.dataset.adminModule===key));sections.forEach(s=>s.classList.toggle('admin-module-hidden',s.dataset.adminModuleSection!==key));try{sessionStorage.setItem('nexoraAdminModule',key)}catch(e){}}tabs.forEach(b=>b.addEventListener('click',()=>show(b.dataset.adminModule)));let initial='overview';try{const saved=sessionStorage.getItem('nexoraAdminModule');if(tabs.some(b=>b.dataset.adminModule===saved))initial=saved}catch(e){}show(initial);});
+</script><script>
+/* Nexora v2.14.5.2 — Admin notification history clear (frontend-only). */
+document.addEventListener('DOMContentLoaded',()=>{
+  const KEY='nexora_admin_hidden_notification_history_v21452';
+  const listIds=['adminProofNotificationList','adminRewardNotificationList','adminSupportNotificationList'];
+  const readHidden=()=>{try{return new Set(JSON.parse(localStorage.getItem(KEY)||'[]'))}catch(e){return new Set()}};
+  const signature=el=>String(el?.innerText||el?.textContent||'').replace(/\s+/g,' ').trim();
+  const filterHidden=()=>{const hidden=readHidden();listIds.forEach(id=>{const box=document.getElementById(id);if(!box)return;[...box.children].forEach(row=>{const sig=signature(row);if(sig&&hidden.has(sig))row.remove()})})};
+  listIds.forEach(id=>{const box=document.getElementById(id);if(box)new MutationObserver(filterHidden).observe(box,{childList:true})});
+  filterHidden();
+  const btn=document.getElementById('clearAdminNotificationHistory');
+  if(btn)btn.addEventListener('click',()=>{
+    if(!confirm('Xóa toàn bộ lịch sử thông báo đang hiển thị trên thiết bị này? Thông báo mới phát sinh sau đó vẫn sẽ xuất hiện.'))return;
+    const hidden=readHidden();
+    listIds.forEach(id=>{const box=document.getElementById(id);if(!box)return;[...box.children].forEach(row=>{const sig=signature(row);if(sig)hidden.add(sig);row.remove()})});
+    try{localStorage.setItem(KEY,JSON.stringify([...hidden].slice(-500)))}catch(e){}
+    const mark=document.getElementById('markAdminNotificationsRead'); if(mark)mark.click();
+    const badge=document.getElementById('adminNotifTabBadge'); if(badge){badge.textContent='0';badge.classList.add('hidden')}
+  });
+});
 </script></body></html>
